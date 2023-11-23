@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Home from "./Home.jsx"
 import "./css/basic.css"
 import Navbar from "./Navbar.jsx"
+import Footer from "./Footer.jsx"
 
 function App() {
   const [count, setCount] = useState(0)
@@ -17,6 +18,7 @@ function App() {
         <Route path="/help"></Route>
         <Route path="/feedback"></Route>
       </Routes>
+      <Footer></Footer>
     </Router>
   )
 }

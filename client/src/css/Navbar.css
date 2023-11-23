@@ -15,6 +15,9 @@
     margin: 0px;
     width: 100%;
 }
+.navbar.footer {
+    min-height: 150px;
+}
 
 #gitHubLink {
     height: 2em;

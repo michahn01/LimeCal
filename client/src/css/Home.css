@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:800');
+@import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#page_body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.gradient_background {
+    height: 400px;
+    width: 100%;
+    background: #1D976C;
+    background: -webkit-linear-gradient(to right, #93F9B9, #1D976C); 
+    background: linear-gradient(to right, #93F9B9, #1D976C);
+}
+
+.relative_background {
+    height: 500px;
+    width: 100%;
+    position: relative;
+    background-color: rgb(245, 245, 245);
+    /* background: #1D976C;
+    background: -webkit-linear-gradient(to right, #93F9B9, #1D976C); 
+    background: linear-gradient(to right, #93F9B9, #1D976C); */
+}
+
+.text_region {
+    position: absolute;
+    width:100%;
+    height:100%;
+    margin: 0;
+    padding: 0;   
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center; 
+}
+
+.text-box {
+    padding: 0;
+    margin: 0;
+    font-family: 'Open Sans', sans-serif; 
+    color: #212121;
+    text-align: center; 
+    max-width: 700px;
+    font-size: 50px;
+    text-wrap: wrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+    p {
+        font-size: 20px;
+        max-width: 80%;
+        text-align: center;
+        font-family: 'Rubik', sans-serif;
+    }
+}
+.text-box#against_line_background {
+    background-color: rgb(245, 245, 245);
+}
+  
+
+.checkmarks-list {
+    list-style: none;
+    position: relative;
+    color: rgb(51, 51, 51);
+    font-size: 20px;
+    font-family: "Poppins";
+}
+.checkmarks-list li::before {
+    content:"\2713";
+    position: absolute;
+    left: 0;
+}
+
+#big-create-button {
+    background-color: #3a443a; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 35px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 8px 8px #222622;
+    transition: background-color 0.3s, transform 0.3s; /* Smooth transition for hover effect */
+}
+
+#big-create-button:hover {
+  background-color: #53ac57; 
+  color: rgb(224, 224, 224);
+  transform: scale(1.03); 
+}

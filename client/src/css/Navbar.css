@@ -72,35 +72,35 @@
     margin-top: 2px;
     padding: 0.9em 1.2em 0.9em 1.2em;
     gap: 3em;
+}
 
-    .link {
-        text-decoration: none;
-        font-family: "Open Sans", sans-serif;
-        font-weight: 800;
-        font-size: 18px;
-        color: grey;
-        position: relative;
-        /* overflow: hidden; */
+#page_nav_section .link {
+    text-decoration: none;
+    font-family: "Open Sans", sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: grey;
+    position: relative;
+    /* overflow: hidden; */
 
-        &::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -3px;
-            width: 0; /* Start with no underline */
-            height: 3px; /* Thickness of the underline */
-            background-color: currentColor; /* Or set to any color you want */
-            transition: width 0.5s ease; /* Smooth transition for the underline */
-            color:orange;
-          }
-          
-          /* When the element is hovered, the underline spans the full width */
-          &:hover::after {
-            width: 100%;
-          }
-    }
-    .active_link {
-        /* width: 100%; */
-        color: #4a4949;
-    }
+    &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -3px;
+        width: 0; /* Start with no underline */
+        height: 3px; /* Thickness of the underline */
+        background-color: currentColor; /* Or set to any color you want */
+        transition: width 0.5s ease; /* Smooth transition for the underline */
+        color:orange;
+      }
+      
+      /* When the element is hovered, the underline spans the full width */
+      &:hover::after {
+        width: 100%;
+      }
+}
+#page_nav_section .active_link {
+    /* width: 100%; */
+    color: #4a4949;
 }

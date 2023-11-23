@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300&family=Roboto:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:800');
+
+.navbar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1e2b;
+    box-sizing: border-box;
+    padding: 0.8em 7em 0.8em 7em;
+    margin: 0px;
+    width: 100%;
+}
+
+#gitHubLink {
+    height: 2em;
+}
+
+.navbar_subsection {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 5em;
+    margin: 0;
+}
+
+.horizontal_container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1em;
+    text-decoration: none;
+}
+
+#limecal_logo {
+    height: 3em;
+}
+
+#logo_text {
+    font-family: "Atkinson Hyperlegible", sans-serif;
+    color: white;
+    font-size: 32px;
+    margin: 0;
+    padding: 0;
+    font-weight: 700;
+    text-decoration: none;
+    margin-top: 2px;
+}
+
+#version_text {
+    font-size: 15px;
+    font-family: "Roboto", sans-serif;
+    color: white;
+    text-decoration: underline;
+    text-underline-offset: 5px;
+    text-decoration-thickness: 2px;
+    text-decoration-color: #aee034;
+}
+
+#page_nav_section {
+    background-color: white;
+    border-radius: 3px;
+    margin-top: 2px;
+    padding: 0.9em 1.2em 0.9em 1.2em;
+    gap: 3em;
+
+    .link {
+        text-decoration: none;
+        font-family: "Open Sans", sans-serif;
+        font-weight: 800;
+        font-size: 18px;
+        color: grey;
+        position: relative;
+        /* overflow: hidden; */
+
+        &::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -3px;
+            width: 0; /* Start with no underline */
+            height: 3px; /* Thickness of the underline */
+            background-color: currentColor; /* Or set to any color you want */
+            transition: width 0.5s ease; /* Smooth transition for the underline */
+            color:orange;
+          }
+          
+          /* When the element is hovered, the underline spans the full width */
+          &:hover::after {
+            width: 100%;
+          }
+    }
+    .active_link {
+        /* width: 100%; */
+        color: #4a4949;
+    }
+}

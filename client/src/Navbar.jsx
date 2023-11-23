@@ -3,12 +3,9 @@ import "./css/navbar.css"
 import gitHubLogo from "./assets/github-mark-white.png"
 import limecal_logo from "./assets/limecal_logo.png"
 
-import { useLocation, NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 
 const Navbar = () => {
-    const location = useLocation();
-    const p = location.pathname;
-
     return (
         <div className="navbar">
             <div className="navbar_subsection">

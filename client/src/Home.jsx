@@ -10,9 +10,9 @@ const Home = () => {
         <div className="relative_background">
             <div className='portable-container'>
                 <div className="lines">
-                    <div class="line"></div>
-                    <div class="line"></div>
-                    <div class="line"></div>
+                    <div className="line"></div>
+                    <div className="line"></div>
+                    <div className="line"></div>
                 </div>
             </div>
             <div className="text_region">

@@ -1,10 +1,10 @@
-package com.limecal.scheduler.dao;
-import com.limecal.scheduler.Event.Event;
-
+package com.limecal.scheduler.Event;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+
+import com.limecal.scheduler.dao.DAO;
 
 import java.util.List;
 import java.util.Optional;

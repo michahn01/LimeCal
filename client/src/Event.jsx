@@ -1,27 +1,35 @@
 import React from 'react'
-import "./css/Event.css"
 
 import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
 
+import { DateTime } from 'luxon';
+
+import "./css/Event.css"
 // for calendar styling
-import "./css/custom_cal.css"
+import "./css/calendars.css"
 
 import { useParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const toLocalISODateString = (date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
   
 const Calendar = () => {
 
-    const [selectedDates, setSelectedDates] = useState(new Set());
-
-    const toLocalISODateString = (date) => {
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
+    const submitDates = (event) => {
+        // make API request
     }
+
+    const [selectedDates, setSelectedDates] = useState(new Set());
 
     const handleDateSelect = (selectInfo) => {
         const calendarApi = selectInfo.view.calendar;
@@ -50,9 +58,8 @@ const Calendar = () => {
             return;
         }
 
-        let dates = [];
-
         // iterate over each day in the range
+        const dates = [];
         for (let date = new Date(startDate); date < endDate; 
             date.setDate(date.getDate() + 1)) {
 
@@ -70,30 +77,169 @@ const Calendar = () => {
         calendarApi.unselect();
         setSelectedDates(new Set([...selectedDates, ...dates]));
     };
+
+    // to-do: once api server calls are established and loading times become a thing, 
+    // make sure these also go in the loading phase
+    var now = new Date();
+    var sixMonthsBefore = new Date(now.setMonth(now.getMonth() - 6)).toISOString().split('T')[0];    
+    var oneYearAfter = new Date(now.setMonth(now.getMonth() + 18)).toISOString().split('T')[0];
+    // console.log(sixMonthsBefore); console.log(oneYearAfter);
+
     return (
-      <div className="calendar-container">
+      <div className="month-cal-container">
           <FullCalendar 
-          aspectRatio={1.35}
+        //   aspectRatio={2}
           plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin ]}
           initialView='dayGridMonth'
           selectable={true}
           select={handleDateSelect}
+          visibleRange={{            
+            start: sixMonthsBefore,
+            end: oneYearAfter
+          }}
+          validRange={{            
+            start: sixMonthsBefore,
+            end: oneYearAfter
+          }}
+          handleWindowResize={true}
+          contentHeight="auto"
+        //   showNonCurrentDates={false}
+          fixedWeekCount={false}
           headerToolbar={{
-              left: 'prev,next today',
+              left: 'prev,next',
               center: 'title',
-              right: 'dayGridMonth,timeGridWeek'
+              right: 'today'
           }}>
           </FullCalendar>
+
+          <button className="submit-button"
+           onClick={submitDates}>Use these dates</button>
       </div>
     )
-  }
+}
+
+const DatesPanel = () => {
+    const eventDatesList = ['2023-11-03', '2023-11-05', '2023-11-11'];
+    const handleDayDidMount = ({date, el}) => {
+        let currentDate = DateTime.fromJSDate(date).toFormat('yyyy-MM-dd')
+        if (!eventDatesList.includes(currentDate)) {
+            el.style["background-color"] = "red";
+            el.style["display"] = "none";
+            el.remove();
+        }
+    }
+
+    const [selectedTimes, setSelectedTimes] = useState(new Set());
+
+    const handleTimeSelect = (selectInfo) => {
+        const calendarApi = selectInfo.view.calendar;
+
+        const start_info = selectInfo.startStr.split("T");
+        const start_date = start_info[0].split("-");
+        const start_time = start_info[1].split(":");
+        const startTime = new Date(start_date[0], start_date[1]-1, start_date[2], start_time[0], start_time[1]);
+        const end_info = selectInfo.endStr.split("T");
+        const end_date = end_info[0].split("-");
+        const end_time = end_info[1].split(":");
+        const endTime = new Date(end_date[0], end_date[1]-1, end_date[2], end_time[0], end_time[1]);
+
+        // if both the start and end date in the range of dates selected is 
+        // an already-selected date, then dates in the selected
+        // range should be unselected.
+        const incl_end = new Date(endTime);
+        incl_end.setMinutes(incl_end.getMinutes() - 30);
+        if (selectedTimes.has(startTime.toISOString()) && 
+            selectedTimes.has(incl_end.toISOString())) {
+            const new_times = new Set(selectedTimes);
+            for (let date = new Date(startTime); date < endTime; 
+                date.setMinutes(date.getMinutes() + 30)) {
+                    if (!new_times.has(date.toISOString())) continue;
+                    calendarApi.getEventById(date.toISOString()).remove();
+                    new_times.delete(date.toISOString());
+            }
+            setSelectedTimes(new_times);
+            calendarApi.unselect();
+            return;
+        }
+
+        // iterate over each 30-minute chunk in the range
+        const dates = [];
+        let date = new Date(startTime);
+        while ( date < endTime ) {
+            const now = new Date(date);
+            date.setMinutes(date.getMinutes() + 30)
+            if (selectedTimes.has(now.toISOString())) continue;
+            dates.push(now.toISOString());
+            calendarApi.addEvent({
+                id: now.toISOString(),
+                start: toLocalISODateString(now),
+                end: toLocalISODateString(date),
+                allDay: selectInfo.allDay,
+                backgroundColor: 'green',
+                display: 'background'
+            });
+        }
+      
+        calendarApi.unselect();
+        setSelectedTimes(new Set([...selectedTimes, ...dates]));
+    };
+
+    const handleMount = ({ el }) => {
+        // Adapt column width to number of dates present
+        const timegridBody = el.querySelectorAll('div.fc-timegrid-body');
+        const timegridSlots = el.querySelectorAll(
+            'div.fc-timegrid-slots table',
+        );
+
+        // Update width based on rendered dates number
+        let newWidth = eventDatesList.length * 2;
+
+        timegridBody[0].style['min-width'] = `${newWidth}px`;
+        timegridSlots[0].style['min-width'] = `${newWidth}px`;
+    };
+    return (
+        <div className='panels'>
+            <FullCalendar 
+            plugins={[ timeGridPlugin, interactionPlugin ]}
+            initialView='timeGrid'
+            selectable={true}
+            allDaySlot={false}
+            scrollTimeReset={false}
+            select={handleTimeSelect}
+            dayHeaderFormat={
+                { weekday: 'short', month: 'numeric', day: 'numeric', omitCommas: true }
+            }
+            visibleRange={{
+                start: '2023-11-01',
+                end: '2023-11-30',
+            }}
+            dayCellDidMount={(arg => handleDayDidMount(arg))}
+            dayHeaderDidMount={(arg => handleDayDidMount(arg))}
+            viewDidMount={(arg) => handleMount(arg)}
+            headerToolbar={{
+                left: '',
+                center: '',
+                right: ''
+            }}>
+            </FullCalendar>
+        </div>
+    )
+}
+
 
 const Event = () => {
     const params = useParams();
     const eventId = params.eventId;
     return (
         <div className='page-body'>
-            <Calendar style={{width: '100px'}}></Calendar>
+            <div className='dates-select-container'>
+                <p>Select a date or dates when you're available (click or drag).</p>
+                <Calendar></Calendar>
+            </div>
+            <div className='time-select-container'>
+                <p>Now select specific times when you're available:</p>
+                <DatesPanel></DatesPanel>
+            </div>
         </div>
     )
 }

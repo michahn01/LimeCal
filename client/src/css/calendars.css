@@ -1,12 +1,40 @@
 @import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200;300;400;500;600;700&display=swap");
 
-.calendar-container {
+.month-cal-container {
     padding: 0;
     margin: 0;
     flex-direction: row;
     justify-content: center;
-    width: 95%;
-    max-width: 450px;
+    width: 100%;
+}
+
+.month-cal-container .fc .fc-toolbar-title {
+    font-size: 1.7em;
+}
+
+.panels {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.panels .fc {
+    min-height: 565px;
+    font-size: 12px;
+}
+
+.panels colgroup {
+    width: 10px;
+}
+
+.panels .fc .fc-toolbar-title {
+    font-size: 1em;
+}
+
+.panels .fc .fc-header-toolbar {
+    margin: 0;
 }
 
 .fc {
@@ -18,7 +46,6 @@
     display: flex;
 }
 
-/* Remove border rounding on buttons */
 .fc .fc-button-primary {
     border-radius: 0; 
     background-color: #333; 
@@ -28,16 +55,11 @@
     padding: 0.3em;
 }
 
-/* Change hover state for buttons */
 .fc .fc-button-primary:not(:disabled):hover {
     background-color: #444; 
     border-color: #444;
 }
 
-/* Remove underlines */
 .fc a {
     text-decoration: none; 
-}
-.fc .fc-toolbar-title {
-    font-size: 1.6em;
 }

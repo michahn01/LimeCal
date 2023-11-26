@@ -1,14 +1,26 @@
 package com.limecal.scheduler.Event;
 
+import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Event {
     private Long id;
     private String public_id;
 
+    @NotBlank
     private String title;
     private String password;
 
     public Event() {
 
+    }
+
+    @JsonCreator
+    public Event(@JsonProperty(value = "title", required = true) String title, 
+                 @JsonProperty(value = "password", required = false) String password) {
+        this.title = title;
+        this.password = password;
     }
 
     public Event(String title, String password, Long Id, String public_id) {

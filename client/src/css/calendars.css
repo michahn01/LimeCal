@@ -3,7 +3,7 @@
 .month-cal-container {
     padding: 0;
     margin: 0;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
     width: 100%;
 }
@@ -12,28 +12,39 @@
     font-size: 1.7em;
 }
 
-.panels {
-    width: 100%;
+.fc-time-grid .fc-slats {
+    display: none;
+  }
+
+
+.panel {
+    /* width: 700px; */
     padding: 0;
     margin: 0;
+    display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0;
     justify-content: center;
 }
 
-.panels .fc {
+.panel .fc {
     min-height: 565px;
     font-size: 12px;
+    width: 150px;
+    margin: 0;
+    padding: 0;
 }
 
-.panels colgroup {
+.panel colgroup {
     width: 10px;
 }
 
-.panels .fc .fc-toolbar-title {
+.panel .fc .fc-toolbar-title {
     font-size: 1em;
 }
 
-.panels .fc .fc-header-toolbar {
+.panel .fc .fc-header-toolbar {
     margin: 0;
 }
 

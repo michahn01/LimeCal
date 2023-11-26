@@ -5,7 +5,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
-import { DateTime } from 'luxon';
+import TimeRangeSelector from './TimeRangeSelector';
 
 import "./css/Event.css"
 // for calendar styling
@@ -88,7 +88,7 @@ const Calendar = () => {
     return (
       <div className="month-cal-container">
           <FullCalendar 
-        //   aspectRatio={2}
+        //   aspectRatio={1.35}
           plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin ]}
           initialView='dayGridMonth'
           selectable={true}
@@ -120,16 +120,9 @@ const Calendar = () => {
 
 const DatesPanel = () => {
     const eventDatesList = ['2023-11-03', '2023-11-05', '2023-11-11'];
-    const handleDayDidMount = ({date, el}) => {
-        let currentDate = DateTime.fromJSDate(date).toFormat('yyyy-MM-dd')
-        if (!eventDatesList.includes(currentDate)) {
-            el.style["background-color"] = "red";
-            el.style["display"] = "none";
-            el.remove();
-        }
-    }
 
     const [selectedTimes, setSelectedTimes] = useState(new Set());
+    const [timeRange, setTimeRange] = useState(['', '']);
 
     const handleTimeSelect = (selectInfo) => {
         const calendarApi = selectInfo.view.calendar;
@@ -170,6 +163,7 @@ const DatesPanel = () => {
             date.setMinutes(date.getMinutes() + 30)
             if (selectedTimes.has(now.toISOString())) continue;
             dates.push(now.toISOString());
+            console.log(now.toISOString());
             calendarApi.addEvent({
                 id: now.toISOString(),
                 start: toLocalISODateString(now),
@@ -184,47 +178,51 @@ const DatesPanel = () => {
         setSelectedTimes(new Set([...selectedTimes, ...dates]));
     };
 
-    const handleMount = ({ el }) => {
-        // Adapt column width to number of dates present
-        const timegridBody = el.querySelectorAll('div.fc-timegrid-body');
-        const timegridSlots = el.querySelectorAll(
-            'div.fc-timegrid-slots table',
-        );
 
-        // Update width based on rendered dates number
-        let newWidth = eventDatesList.length * 2;
+    const panel_dates = ['2023-11-03', '2023-11-05', '2023-11-11','2023-11-02','2023-11-01'];
 
-        timegridBody[0].style['min-width'] = `${newWidth}px`;
-        timegridSlots[0].style['min-width'] = `${newWidth}px`;
+    const handleTimeChange = (startTime, endTime) => {
+        setTimeRange([ startTime, endTime ]);
     };
+
+
     return (
-        <div className='panels'>
-            <FullCalendar 
+        <div className='time-select-container'>
+        <p>Now press and drag cursor over specific times when you're available:</p>
+        <TimeRangeSelector onTimeChange={handleTimeChange}/>
+        {/* <button onClick={() => {console.log(timeRange[0])}}>Check</button> */}
+        <div className='panel'>
+            {panel_dates.map((date, index) => (
+            <FullCalendar
             plugins={[ timeGridPlugin, interactionPlugin ]}
             initialView='timeGrid'
             selectable={true}
             allDaySlot={false}
             scrollTimeReset={false}
+            initialDate={date}
             select={handleTimeSelect}
+            contentHeight={"auto"}
+            slotMinTime={timeRange[0] === '' ? '07:00:00' : timeRange[0]}
+            slotMaxTime={timeRange[1] === '' ? '19:00:00' : timeRange[1]}
             dayHeaderFormat={
                 { weekday: 'short', month: 'numeric', day: 'numeric', omitCommas: true }
             }
-            visibleRange={{
-                start: '2023-11-01',
-                end: '2023-11-30',
-            }}
-            dayCellDidMount={(arg => handleDayDidMount(arg))}
-            dayHeaderDidMount={(arg => handleDayDidMount(arg))}
-            viewDidMount={(arg) => handleMount(arg)}
             headerToolbar={{
                 left: '',
                 center: '',
                 right: ''
             }}>
             </FullCalendar>
+            ))}
         </div>
+        </div>
+
     )
 }
+
+
+
+
 
 
 const Event = () => {
@@ -232,15 +230,18 @@ const Event = () => {
     const eventId = params.eventId;
     return (
         <div className='page-body'>
-            <div className='dates-select-container'>
-                <p>Select a date or dates when you're available (click or drag).</p>
-                <Calendar></Calendar>
-            </div>
-            <div className='time-select-container'>
-                <p>Now select specific times when you're available:</p>
+            <div className='content-container'>
+                {/* <button
+                onClick={() => {setStep((step + 1) % 2)}}>switch</button> */}
+                <div className='dates-select-container' >
+                    <p>Select a date or dates when you're available (click or drag).</p>
+                    <Calendar></Calendar>
+                </div>
                 <DatesPanel></DatesPanel>
             </div>
         </div>
+
+
     )
 }
 

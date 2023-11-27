@@ -119,65 +119,117 @@ const Calendar = () => {
 }
 
 const DatesPanel = () => {
-    const eventDatesList = ['2023-11-03', '2023-11-05', '2023-11-11'];
 
     const [selectedTimes, setSelectedTimes] = useState(new Set());
     const [timeRange, setTimeRange] = useState(['', '']);
 
+    // const handleTimeSelect = (selectInfo) => {
+    //     const calendarApi = selectInfo.view.calendar;
+
+    //     const startTime = new Date(selectInfo.startStr);
+    //     const endTime = new Date(selectInfo.endStr);
+    //     console.log(selectInfo.startStr);
+    //     // if both the start and end date in the range of dates selected is 
+    //     // an already-selected date, then dates in the selected
+    //     // range should be unselected.
+    //     const incl_end = new Date(endTime);
+    //     incl_end.setMinutes(incl_end.getMinutes() - 30);
+    //     if (selectedTimes.has(startTime.toISOString()) && 
+    //         selectedTimes.has(incl_end.toISOString())) {
+    //         const new_times = new Set(selectedTimes);
+    //         for (let date = new Date(startTime); date < endTime; 
+    //             date.setMinutes(date.getMinutes() + 30)) {
+    //                 if (!new_times.has(date.toISOString())) continue;
+    //                 calendarApi.getEventById(date.toISOString()).remove();
+    //                 new_times.delete(date.toISOString());
+    //         }
+    //         setSelectedTimes(new_times);
+    //         calendarApi.unselect();
+    //         return;
+    //     }
+
+    //     // iterate over each 30-minute chunk in the range
+    //     const dates = [];
+    //     let date = new Date(startTime);
+    //     while ( date < endTime ) {
+    //         const now = new Date(date);
+    //         date.setMinutes(date.getMinutes() + 30)
+    //         if (selectedTimes.has(now.toISOString())) continue;
+    //         dates.push(now.toISOString());
+    //         // console.log(toLocalISODateString(now));
+    //         calendarApi.addEvent({
+    //             id: now.toISOString(),
+    //             start: now.toISOString(),
+    //             end: date.toISOString(),
+    //             allDay: selectInfo.allDay,
+    //             backgroundColor: 'green',
+    //             display: 'background'
+    //         });
+    //     }
+      
+    //     calendarApi.unselect();
+    //     setSelectedTimes(new Set([...selectedTimes, ...dates]));
+    // };
+
+
+    const createEvent = (calendar, startStr, endStr) => {
+        calendar.addEvent({
+            start: startStr,
+            end: endStr,
+            backgroundColor: 'green',
+            display: 'background'
+        })
+    }
+
+
     const handleTimeSelect = (selectInfo) => {
         const calendarApi = selectInfo.view.calendar;
+        const allEvents = calendarApi.getEvents();
 
-        const start_info = selectInfo.startStr.split("T");
-        const start_date = start_info[0].split("-");
-        const start_time = start_info[1].split(":");
-        const startTime = new Date(start_date[0], start_date[1]-1, start_date[2], start_time[0], start_time[1]);
-        const end_info = selectInfo.endStr.split("T");
-        const end_date = end_info[0].split("-");
-        const end_time = end_info[1].split(":");
-        const endTime = new Date(end_date[0], end_date[1]-1, end_date[2], end_time[0], end_time[1]);
-
-        // if both the start and end date in the range of dates selected is 
-        // an already-selected date, then dates in the selected
-        // range should be unselected.
-        const incl_end = new Date(endTime);
-        incl_end.setMinutes(incl_end.getMinutes() - 30);
-        if (selectedTimes.has(startTime.toISOString()) && 
-            selectedTimes.has(incl_end.toISOString())) {
-            const new_times = new Set(selectedTimes);
-            for (let date = new Date(startTime); date < endTime; 
-                date.setMinutes(date.getMinutes() + 30)) {
-                    if (!new_times.has(date.toISOString())) continue;
-                    calendarApi.getEventById(date.toISOString()).remove();
-                    new_times.delete(date.toISOString());
+        let startDate = new Date(selectInfo.startStr);
+        let endDate = new Date(selectInfo.endStr);
+        
+        const for_removal = [];
+        let should_insert = true;
+        for (const e of allEvents) {
+            const eStart = new Date(e.startStr);
+            const eEnd = new Date(e.endStr);
+            if (eStart <= startDate) {
+                if (endDate <= eEnd) {
+                    should_insert = false;
+                    const old_end = e.endStr;
+                    for_removal.push(e);
+                    if (eStart < startDate) {
+                        createEvent(calendarApi, e.startStr, selectInfo.startStr);
+                    }
+                    if (endDate < eEnd) {
+                        createEvent(calendarApi, selectInfo.endStr, e.endStr);
+                    }
+                    break;
+                }
+                else if (eEnd >= startDate) {
+                    startDate = eStart;
+                    for_removal.push(e);
+                }
             }
-            setSelectedTimes(new_times);
-            calendarApi.unselect();
-            return;
+            else {
+                if (endDate >= eEnd) {
+                    for_removal.push(e);
+                }
+                else if (endDate >= eStart) {
+                    endDate = eEnd;
+                    for_removal.push(e);
+                }
+            }
         }
-
-        // iterate over each 30-minute chunk in the range
-        const dates = [];
-        let date = new Date(startTime);
-        while ( date < endTime ) {
-            const now = new Date(date);
-            date.setMinutes(date.getMinutes() + 30)
-            if (selectedTimes.has(now.toISOString())) continue;
-            dates.push(now.toISOString());
-            console.log(now.toISOString());
-            calendarApi.addEvent({
-                id: now.toISOString(),
-                start: toLocalISODateString(now),
-                end: toLocalISODateString(date),
-                allDay: selectInfo.allDay,
-                backgroundColor: 'green',
-                display: 'background'
-            });
+        for (const e of for_removal) {
+            e.remove();
         }
-      
+        if (should_insert) {
+            createEvent(calendarApi, startDate, endDate);
+        }
         calendarApi.unselect();
-        setSelectedTimes(new Set([...selectedTimes, ...dates]));
-    };
-
+    }
 
     const panel_dates = ['2023-11-03', '2023-11-05', '2023-11-11','2023-11-02','2023-11-01'];
 
@@ -190,7 +242,6 @@ const DatesPanel = () => {
         <div className='time-select-container'>
         <p>Now press and drag cursor over specific times when you're available:</p>
         <TimeRangeSelector onTimeChange={handleTimeChange}/>
-        {/* <button onClick={() => {console.log(timeRange[0])}}>Check</button> */}
         <div className='panel'>
             {panel_dates.map((date, index) => (
             <FullCalendar
@@ -201,6 +252,8 @@ const DatesPanel = () => {
             scrollTimeReset={false}
             initialDate={date}
             select={handleTimeSelect}
+            eventOverlap={false}
+            slotLabelInterval={'01:00:00'}
             contentHeight={"auto"}
             slotMinTime={timeRange[0] === '' ? '07:00:00' : timeRange[0]}
             slotMaxTime={timeRange[1] === '' ? '19:00:00' : timeRange[1]}
@@ -234,7 +287,7 @@ const Event = () => {
                 {/* <button
                 onClick={() => {setStep((step + 1) % 2)}}>switch</button> */}
                 <div className='dates-select-container' >
-                    <p>Select a date or dates when you're available (click or drag).</p>
+                    <p>Select a date or dates when you can meet (click, drag mouse).</p>
                     <Calendar></Calendar>
                 </div>
                 <DatesPanel></DatesPanel>

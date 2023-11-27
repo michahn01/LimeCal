@@ -23,10 +23,12 @@ const toLocalISODateString = (date) => {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
   
-const Calendar = () => {
+const Calendar = ({ updateSelectedDates }) => {
 
     const submitDates = (event) => {
         // make API request
+        // console.log("submit dates")
+        updateSelectedDates(selectedDates);
     }
 
     const [selectedDates, setSelectedDates] = useState(new Set());
@@ -118,59 +120,10 @@ const Calendar = () => {
     )
 }
 
-const DatesPanel = () => {
+const DatesPanel = ({ userDates }) => {
 
     const [selectedTimes, setSelectedTimes] = useState(new Set());
     const [timeRange, setTimeRange] = useState(['', '']);
-
-    // const handleTimeSelect = (selectInfo) => {
-    //     const calendarApi = selectInfo.view.calendar;
-
-    //     const startTime = new Date(selectInfo.startStr);
-    //     const endTime = new Date(selectInfo.endStr);
-    //     console.log(selectInfo.startStr);
-    //     // if both the start and end date in the range of dates selected is 
-    //     // an already-selected date, then dates in the selected
-    //     // range should be unselected.
-    //     const incl_end = new Date(endTime);
-    //     incl_end.setMinutes(incl_end.getMinutes() - 30);
-    //     if (selectedTimes.has(startTime.toISOString()) && 
-    //         selectedTimes.has(incl_end.toISOString())) {
-    //         const new_times = new Set(selectedTimes);
-    //         for (let date = new Date(startTime); date < endTime; 
-    //             date.setMinutes(date.getMinutes() + 30)) {
-    //                 if (!new_times.has(date.toISOString())) continue;
-    //                 calendarApi.getEventById(date.toISOString()).remove();
-    //                 new_times.delete(date.toISOString());
-    //         }
-    //         setSelectedTimes(new_times);
-    //         calendarApi.unselect();
-    //         return;
-    //     }
-
-    //     // iterate over each 30-minute chunk in the range
-    //     const dates = [];
-    //     let date = new Date(startTime);
-    //     while ( date < endTime ) {
-    //         const now = new Date(date);
-    //         date.setMinutes(date.getMinutes() + 30)
-    //         if (selectedTimes.has(now.toISOString())) continue;
-    //         dates.push(now.toISOString());
-    //         // console.log(toLocalISODateString(now));
-    //         calendarApi.addEvent({
-    //             id: now.toISOString(),
-    //             start: now.toISOString(),
-    //             end: date.toISOString(),
-    //             allDay: selectInfo.allDay,
-    //             backgroundColor: 'green',
-    //             display: 'background'
-    //         });
-    //     }
-      
-    //     calendarApi.unselect();
-    //     setSelectedTimes(new Set([...selectedTimes, ...dates]));
-    // };
-
 
     const createEvent = (calendar, startStr, endStr) => {
         calendar.addEvent({
@@ -180,7 +133,6 @@ const DatesPanel = () => {
             display: 'background'
         })
     }
-
 
     const handleTimeSelect = (selectInfo) => {
         const calendarApi = selectInfo.view.calendar;
@@ -229,6 +181,7 @@ const DatesPanel = () => {
             createEvent(calendarApi, startDate, endDate);
         }
         calendarApi.unselect();
+        console.log(userDates);
     }
 
     const panel_dates = ['2023-11-03', '2023-11-05', '2023-11-11','2023-11-02','2023-11-01'];
@@ -237,13 +190,12 @@ const DatesPanel = () => {
         setTimeRange([ startTime, endTime ]);
     };
 
-
     return (
         <div className='time-select-container'>
         <p>Now press and drag cursor over specific times when you're available:</p>
         <TimeRangeSelector onTimeChange={handleTimeChange}/>
         <div className='panel'>
-            {panel_dates.map((date, index) => (
+            {userDates.map((date, index) => (
             <FullCalendar
             plugins={[ timeGridPlugin, interactionPlugin ]}
             initialView='timeGrid'
@@ -273,14 +225,20 @@ const DatesPanel = () => {
     )
 }
 
-
-
-
-
-
 const Event = () => {
     const params = useParams();
     const eventId = params.eventId;
+    
+    const [calSelectedDates, setCalSelectedDates] = useState([]);
+    const updateSelectedDates = (dates) => {
+        console.log("called function");
+        const new_dates = [];
+        for (const date of dates) {
+            new_dates.push(date);
+        }
+        setCalSelectedDates(new_dates);
+    }
+
     return (
         <div className='page-body'>
             <div className='content-container'>
@@ -288,13 +246,11 @@ const Event = () => {
                 onClick={() => {setStep((step + 1) % 2)}}>switch</button> */}
                 <div className='dates-select-container' >
                     <p>Select a date or dates when you can meet (click, drag mouse).</p>
-                    <Calendar></Calendar>
+                    <Calendar updateSelectedDates={updateSelectedDates}></Calendar>
                 </div>
-                <DatesPanel></DatesPanel>
+                <DatesPanel userDates={calSelectedDates}></DatesPanel>
             </div>
         </div>
-
-
     )
 }
 

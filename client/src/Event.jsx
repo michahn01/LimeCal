@@ -181,7 +181,6 @@ const DatesPanel = ({ userDates }) => {
             createEvent(calendarApi, startDate, endDate);
         }
         calendarApi.unselect();
-        console.log(userDates);
     }
 
     const panel_dates = ['2023-11-03', '2023-11-05', '2023-11-11','2023-11-02','2023-11-01'];
@@ -197,6 +196,7 @@ const DatesPanel = ({ userDates }) => {
         <div className='panel'>
             {userDates.map((date, index) => (
             <FullCalendar
+            key={date}
             plugins={[ timeGridPlugin, interactionPlugin ]}
             initialView='timeGrid'
             selectable={true}
@@ -231,11 +231,8 @@ const Event = () => {
     
     const [calSelectedDates, setCalSelectedDates] = useState([]);
     const updateSelectedDates = (dates) => {
-        console.log("called function");
-        const new_dates = [];
-        for (const date of dates) {
-            new_dates.push(date);
-        }
+        const new_dates = Array.from(dates);
+        new_dates.sort();
         setCalSelectedDates(new_dates);
     }
 

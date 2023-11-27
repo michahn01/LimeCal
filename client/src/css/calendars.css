@@ -25,11 +25,11 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: 0;
+    row-gap: 2em;
     justify-content: center;
 }
 
 .panel .fc {
-    min-height: 565px;
     font-size: 12px;
     width: 150px;
     margin: 0;

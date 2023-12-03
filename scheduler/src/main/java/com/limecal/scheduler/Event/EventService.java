@@ -35,4 +35,16 @@ public class EventService {
         return event_info;
     }
 
+    public void createEvent(Event event) {
+        eventDAO.create(event);
+    }
+
+    public void deleteEvent(Long eventId) {
+
+    }
+
+    public void updateEvent(Long eventId, String newName) {
+        
+    }
+
 }

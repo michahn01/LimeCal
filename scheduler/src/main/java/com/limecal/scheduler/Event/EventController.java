@@ -2,6 +2,7 @@ package com.limecal.scheduler.Event;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
@@ -30,31 +31,35 @@ public class EventController {
     // public_id is a UUID corresponding to "public_id"
     // in database table for "event"
 	@GetMapping(path = "/{public_id}")
-	public ResponseEntity<Map<String, String>> getInteger() {
-        return ResponseEntity(,HttpStatus.OK);
+	public ResponseEntity<Map<String, String>> getEvent(@PathVariable String public_id) {
+        return new ResponseEntity<>
+		(eventService.getEventByPublicID(public_id), HttpStatus.OK);
 	}
 
 	@PostMapping
-	public ResponseEntity<String> registerNewStudent(@Valid @RequestBody Event event) {
+	public ResponseEntity<String> registerNewEvent(@Valid @RequestBody Event event) {
+		eventService.createEvent(event);
         return ResponseEntity.ok("Event added.");
 	}
 
-	@DeleteMapping("/something/{studentId}/another/{susId}")
-	public void paramPassing(@PathVariable String studentId,
-							 @PathVariable String susId,
-							 @RequestParam(required = false) String bleh)  {
-		System.out.printf("Received values are: %s and %s and %s\n", 
-		studentId, susId, bleh != null ? bleh : "null query param");
+	// @DeleteMapping("/something/{eventId}/another/{susId}")
+	// public void paramPassing(@PathVariable String eventId,
+	// 						 @PathVariable String susId,
+	// 						 @RequestParam(required = false) String bleh)  {
+	// 	System.out.printf("Received values are: %s and %s and %s\n", 
+	// 	eventId, susId, bleh != null ? bleh : "null query param");
+	// }
+
+	@DeleteMapping("/{eventId}")
+	public void deleteEvent(@PathVariable Long eventId) {
+		// function below not yet implemented
+		eventService.deleteEvent(eventId);
 	}
 
-	@DeleteMapping("/{studentId}")
-	public void deleteStudent(@PathVariable Long studentId) {
-		studentService.deleteStudent(studentId);
-	}
-
-	@PutMapping("/{studentId}")
-	public void updateStudentName(@PathVariable Long studentId,
-								  @RequestParam(required = false) String name) {
-		studentService.updateStudent(studentId, name);
+	@PutMapping("/{eventId}")
+	public void updateEventName(@PathVariable Long eventId,
+								@RequestParam(required = false) String name) {
+		// function below not yet implemented
+		eventService.updateEvent(eventId, name);
 	}
 }

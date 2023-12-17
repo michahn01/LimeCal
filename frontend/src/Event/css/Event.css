@@ -11,6 +11,7 @@
     gap: 8em;
     justify-content: center;
     align-items: flex-start;
+    font-family: 'Nunito Sans', sans-serif;
 }
 
 p {
@@ -41,7 +42,6 @@ p {
     align-items: center;
     box-sizing: border-box;
     margin: 1% 10% 20px 10%;
-    font-family: 'Nunito Sans', sans-serif;
 }
 
 .content-container {

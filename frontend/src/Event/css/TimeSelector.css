@@ -8,6 +8,10 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .date-column {
@@ -25,6 +29,7 @@
     align-items: center;
     justify-content: center;
     padding: 10px 0 10px 0;
+    /* user-select: none; */
 }
 
 .date-column-header h2 {
@@ -35,12 +40,12 @@
     margin: 0;
     padding: 0;
 }
+
 .selectable-time-slot {
     height: 8px;
     background-color: lightgrey;
+    transition: background-color 0.2s ease;
 }
 .selectable-time-slot:hover {
-    height: 8px;
-    background-color: rgb(179, 179, 179);
-    
+    background-image: linear-gradient(rgb(0 0 0/20%) 0 0);
 }

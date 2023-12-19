@@ -1,17 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './css/TimeSelector.css'
 
 
-type TimeSlotProps = {
-    index: number;
-}
-const TimeSlot: React.FC<TimeSlotProps> = ({ index }) => {
-    return (
-        <div className='selectable-time-slot' 
-        style={{borderBottom: (index + 1) % 4 == 0 ? '1px solid whitesmoke' : '' }}
-        onClick={() => {}}></div>
-    )
-}
 
 enum ColumnPosition {
     LeftMost, 
@@ -20,53 +10,135 @@ enum ColumnPosition {
 }
 type DateColumnProps = {
     col_pos: ColumnPosition;
-    date: string;
-    day: string;
+    date: Date;
     times: string[];
+    isDragging: boolean;
+    addingTimes: boolean;
+    isSelected: (date: Date, time: string) => boolean;
+    timeSlotHovered: (date: Date, time: string) => void;
+    timeSlotClicked: (date: Date, time: string, timeSlotActive: boolean) => void;
 }
-const DateColumn: React.FC<DateColumnProps> = ({ col_pos, date, day, times }) => {
+const DateColumn: React.FC<DateColumnProps> = 
+    ({ col_pos, date, times, isDragging, addingTimes, isSelected, timeSlotHovered, timeSlotClicked }) => {
+    const [activeTimeSlots, setActiveTimeSlots] = useState<Set<string>>(new Set());
+    useEffect(() => {
+        if (!isDragging) {
+            console.log("DONEDRAGGING")
+            const updatedSlots: Set<string> = new Set(activeTimeSlots);
+            for (const time of times) {
+                if (isSelected(date, time)) {
+                    if (addingTimes) {
+                        updatedSlots.add(time);
+                    }
+                    else {
+                        updatedSlots.delete(time);
+                    }
+                }
+            }
+            setActiveTimeSlots(updatedSlots);
+        }
+    }, [isDragging])
     return(
         <div className='date-column'>
             <div className='date-column-header'
-                 style={{borderLeft: col_pos == ColumnPosition.LeftMost ? '1px solid lightgrey' : '' }}>
-                <h2>{day}</h2>
-                <p>{date}</p>
+                 style={{borderLeft: col_pos === ColumnPosition.LeftMost ? '1px solid lightgrey' : '' }}>
+                <h2>Day</h2>
+                <p>date</p>
             </div>
             <div className='date-column-timeslot-container'
-                 style={{borderRight: col_pos != ColumnPosition.RightMost ? '1px solid whitesmoke' : '' }}>
-                {times.map((time, col_index) => {
+                 style={{borderRight: col_pos !== ColumnPosition.RightMost ? '1px solid whitesmoke' : '' }}>
+                {times.map((time, index) => {
                     return (
-                        <TimeSlot key={time} index={col_index}></TimeSlot>
+                        <div 
+                        key={time}
+                        className='selectable-time-slot'
+                        style={{
+                            borderBottom: (index + 1) % 4 === 0 ? '1px solid whitesmoke' : '',
+                            backgroundColor: ((isDragging && isSelected(date, time)) ? addingTimes : activeTimeSlots.has(time))  ? '#68b516' : 'lightgrey'
+                        }}
+                        onMouseDown={() => { 
+                            timeSlotClicked(date, time, activeTimeSlots.has(time));
+                        }}
+                        onMouseEnter={() => {timeSlotHovered(date, time)}}
+                        >
+                        </div>
                     )
                 })}
             </div>
         </div>
     )
 }
+// Wrap the component in React.memo for performance optimization
+// const MemoizedDateColumn = React.memo(DateColumn);
+// const rerenderDateColumn = (prevProps: DateColumnProps, nextProps: DateColumnProps) {
+    
+// }
+
+
 
 
 const TimeSelector = () => {
-    const [isDragging, setIsDragging] = useState(false);
-    const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-    const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 });
 
-    const onMouseDown = (e: React.MouseEvent<HTMLElement>) => {
-        setStartPos({ x: e.clientX, y: e.clientY });
-        setCurrentPos({ x: e.clientX, y: e.clientY });
-        setIsDragging(true);
-    };
+    // To select a range of time slots, the user will drag-select over 
+    // multiple panels of dates. When that happens, a "selection box"
+    // will be drawn invisibly. Time slots that fall within this selection 
+    // box will be highligted.
 
-    const onMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const [isDragging, setIsDragging] = useState<boolean>(false);
+    const [addingTimes, setAddingTimes] = useState<boolean>(false);
+    const [startCellDate, setStartCellDate] = useState<Date>(new Date());
+    const [startCellTime, setStartCellTime] = useState<string>('');
+    const [horizontalBound, setHorizontalBound] = useState<Date[]>([new Date(), new Date()]);
+    const [verticalBound, setVerticalBound] = useState<string[]>(['', '']);
+
+
+    const DraggingDone = () => {
         if (isDragging) {
-            setCurrentPos({ x: e.clientX, y: e.clientY });
+            setIsDragging(false);
+
         }
     };
+    useEffect(() => {
+        if (!isDragging) {
+            return;
+        }
+        // Add event listener for mouseup to the whole document
+        document.addEventListener('mouseup', DraggingDone);
+        // Clean up the event listener
+        return () => {
+            document.removeEventListener('mouseup', DraggingDone);
+        };
+    }, [isDragging]);
 
-    const onMouseUp = () => {
-        setIsDragging(false);
-    };
 
-    const getIntervals = () => {
+    const isSelected = (date: Date, time: string): boolean => {
+        // console.log("run")
+        return (horizontalBound[0] <= date && date <= horizontalBound[1] &&
+                verticalBound[0] <= time && time <= verticalBound[1]);
+    }   
+
+    const timeSlotClicked = (date: Date, time: string, timeSlotActive: boolean): void => {
+        setIsDragging(true);
+        setAddingTimes(!timeSlotActive);
+        setStartCellDate(date);
+        setStartCellTime(time);
+        setHorizontalBound([date, date]);
+        setVerticalBound([time, time]);
+    }
+
+    const timeSlotHovered = (date: Date, time: string): void => {
+        if (isDragging) {
+            let min_horizontal_bound: Date = date < startCellDate ? date : startCellDate;
+            let max_horizontal_bound: Date = date > startCellDate ? date : startCellDate;
+            let min_vertical_bound: string = time < startCellTime ? time : startCellTime;
+            let max_vertical_bound: string = time > startCellTime ? time : startCellTime;
+
+            setVerticalBound([min_vertical_bound, max_vertical_bound]);
+            setHorizontalBound([min_horizontal_bound, max_horizontal_bound]);
+        }
+    }
+
+    const getIntervals = (): string[] => {
         const intervals = [];
         const currentDate = new Date();
         
@@ -75,32 +147,45 @@ const TimeSelector = () => {
         endTime.setHours(endTime.getHours() + 8); 
     
         for (let time = startTime; time < endTime; time.setMinutes(time.getMinutes() + 15)) {
-            intervals.push(time.toISOString());
+            intervals.push(time.toISOString().split('T')[1].split('.')[0]);
         }
     
         return intervals;
     };
+
+    const generateDates = (): Date[] => {
+        let dates: Date[] = [];
+        let currentDate = new Date();
+      
+        for (let i = 0; i < 10; i++) {
+          dates.push(new Date(currentDate));
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      
+        return dates;
+      }
     
     const [times] = useState(getIntervals());
-
-    const selectionBoxStyle: React.CSSProperties = {
-        left: Math.min(startPos.x, currentPos.x),
-        top: Math.min(startPos.y, currentPos.y),
-        width: Math.abs(startPos.x - currentPos.x),
-        height: Math.abs(startPos.y - currentPos.y),
-        position: 'fixed',
-        border: '2px dashed blue',
-        pointerEvents: 'none', // To allow mouse events on underlying elements
-        display: isDragging ? 'block' : 'none',
-    };
+    const [dates] = useState(generateDates());
+    
     return (
-        <div className='time-selector' onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp}>
-            <div style={selectionBoxStyle} />
-            <DateColumn col_pos={ColumnPosition.LeftMost} date='Dec 16' day='Sat' times={times}></DateColumn>
-            <DateColumn col_pos={ColumnPosition.Middle} date='Dec 17' day='Sun' times={times}></DateColumn>
-            <DateColumn col_pos={ColumnPosition.Middle} date='Dec 18' day='Mon' times={times}></DateColumn>
-            <DateColumn col_pos={ColumnPosition.Middle} date='Dec 19' day='Tue' times={times}></DateColumn>
-            <DateColumn col_pos={ColumnPosition.RightMost} date='Dec 20' day='Wed' times={times}></DateColumn>
+        <div className='time-selector'>
+            {dates.map((date, index) => {
+                return (
+                    <DateColumn
+                    key={index}
+                    col_pos={index === 0 ? ColumnPosition.LeftMost : 
+                             (index === dates.length ? ColumnPosition.RightMost : ColumnPosition.Middle)}
+                    date={date}
+                    times={times}
+                    isDragging={isDragging}
+                    addingTimes={addingTimes}
+                    isSelected={isSelected}
+                    timeSlotHovered={timeSlotHovered}
+                    timeSlotClicked={timeSlotClicked}
+                    ></DateColumn>
+                )
+            })}
         </div>
     );
 };

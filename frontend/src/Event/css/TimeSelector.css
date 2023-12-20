@@ -1,13 +1,15 @@
 .time-selector {
-    width: 610px;
+    max-width: 610px;
     height: 400px;
+    overflow-x: scroll;   
+    /* white-space: nowrap; */
     /* border-width: 5px;
     border-color: aquamarine;
     border-style: solid; */
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: start;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -16,7 +18,7 @@
 
 .date-column {
     background-color: whitesmoke;
-    width: 85px;
+    min-width: 80px;
 }
 
 .date-column-header {

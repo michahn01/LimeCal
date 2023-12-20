@@ -17,13 +17,13 @@ type DateColumnProps = {
     isSelected: (date: Date, time: string) => boolean;
     timeSlotHovered: (date: Date, time: string) => void;
     timeSlotClicked: (date: Date, time: string, timeSlotActive: boolean) => void;
+    horizontalBound: Date[];
 }
 const DateColumn: React.FC<DateColumnProps> = 
-    ({ col_pos, date, times, isDragging, addingTimes, isSelected, timeSlotHovered, timeSlotClicked }) => {
+    ({ col_pos, date, times, isDragging, addingTimes, isSelected, timeSlotHovered, timeSlotClicked, horizontalBound }) => {
     const [activeTimeSlots, setActiveTimeSlots] = useState<Set<string>>(new Set());
     useEffect(() => {
-        if (!isDragging) {
-            console.log("DONEDRAGGING")
+        if (!isDragging && horizontalBound[0] <= date && date <= horizontalBound[1]) {
             const updatedSlots: Set<string> = new Set(activeTimeSlots);
             for (const time of times) {
                 if (isSelected(date, time)) {
@@ -54,7 +54,7 @@ const DateColumn: React.FC<DateColumnProps> =
                         className='selectable-time-slot'
                         style={{
                             borderBottom: (index + 1) % 4 === 0 ? '1px solid whitesmoke' : '',
-                            backgroundColor: ((isDragging && isSelected(date, time)) ? addingTimes : activeTimeSlots.has(time))  ? '#68b516' : 'lightgrey'
+                            backgroundColor: ((isSelected(date, time)) ? addingTimes : activeTimeSlots.has(time))  ? '#68b516' : 'lightgrey'
                         }}
                         onMouseDown={() => { 
                             timeSlotClicked(date, time, activeTimeSlots.has(time));
@@ -68,14 +68,6 @@ const DateColumn: React.FC<DateColumnProps> =
         </div>
     )
 }
-// Wrap the component in React.memo for performance optimization
-// const MemoizedDateColumn = React.memo(DateColumn);
-// const rerenderDateColumn = (prevProps: DateColumnProps, nextProps: DateColumnProps) {
-    
-// }
-
-
-
 
 const TimeSelector = () => {
 
@@ -128,6 +120,7 @@ const TimeSelector = () => {
 
     const timeSlotHovered = (date: Date, time: string): void => {
         if (isDragging) {
+            // console.log("HOVERED", date, time)
             let min_horizontal_bound: Date = date < startCellDate ? date : startCellDate;
             let max_horizontal_bound: Date = date > startCellDate ? date : startCellDate;
             let min_vertical_bound: string = time < startCellTime ? time : startCellTime;
@@ -183,6 +176,7 @@ const TimeSelector = () => {
                     isSelected={isSelected}
                     timeSlotHovered={timeSlotHovered}
                     timeSlotClicked={timeSlotClicked}
+                    horizontalBound={horizontalBound}
                     ></DateColumn>
                 )
             })}

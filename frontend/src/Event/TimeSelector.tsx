@@ -49,6 +49,33 @@ const convertTimestamp = (timestamp: string): string => {
 
     return `${hours} ${amPm}`;
 }
+// a utility function for development and testing (generates a fixed interval of time slots)
+const getIntervals = (): string[] => {
+    const intervals = [];
+    const currentDate = new Date();
+    
+    const startTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+    const endTime = new Date(startTime.getTime());
+    endTime.setHours(endTime.getHours() + 12); 
+
+    for (let time = startTime; time < endTime; time.setMinutes(time.getMinutes() + 15)) {
+        intervals.push(time.toISOString().split('T')[1].split('.')[0]);
+    }
+
+    return intervals;
+};
+// a utility function for development and testing (generates a fixed interval of dates)
+const generateDates = (): Date[] => {
+    let dates: Date[] = [];
+    let currentDate = new Date();
+    
+    for (let i = 0; i < 10; i++) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return dates;
+}
 // ------------------------------
 // ------------------------------ ** End of Utility functions
 
@@ -239,34 +266,6 @@ const TimeSelector = () => {
             setVerticalBound([min_vertical_bound, max_vertical_bound]);
             setHorizontalBound([min_horizontal_bound, max_horizontal_bound]);
         }
-    }
-
-    // a utility function for development and testing (generates a fixed interval of time slots)
-    const getIntervals = (): string[] => {
-        const intervals = [];
-        const currentDate = new Date();
-        
-        const startTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-        const endTime = new Date(startTime.getTime());
-        endTime.setHours(endTime.getHours() + 12); 
-    
-        for (let time = startTime; time < endTime; time.setMinutes(time.getMinutes() + 15)) {
-            intervals.push(time.toISOString().split('T')[1].split('.')[0]);
-        }
-    
-        return intervals;
-    };
-    // a utility function for development and testing (generates a fixed interval of dates)
-    const generateDates = (): Date[] => {
-        let dates: Date[] = [];
-        let currentDate = new Date();
-      
-        for (let i = 0; i < 10; i++) {
-          dates.push(new Date(currentDate));
-          currentDate.setDate(currentDate.getDate() + 1);
-        }
-      
-        return dates;
     }
     
     const [times] = useState(getIntervals());

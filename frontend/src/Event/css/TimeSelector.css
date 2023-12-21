@@ -1,6 +1,6 @@
 .time-selector {
     max-width: 610px;
-    height: 400px;
+    min-height: 400px;
     overflow-x: scroll;   
     /* white-space: nowrap; */
     /* border-width: 5px;
@@ -8,8 +8,9 @@
     border-style: solid; */
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: start;
     justify-content: start;
+    flex-wrap: nowrap;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -22,6 +23,7 @@
 }
 
 .date-column-header {
+    height: 85px;
     background-color: white;
     border-width: 1px 1px 0px 0;
     border-style: solid;
@@ -30,7 +32,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 10px 0 10px 0;
+    /* padding: 10px 0 10px 0; */
+    box-sizing: border-box;
     /* user-select: none; */
 }
 
@@ -50,4 +53,20 @@
 }
 .selectable-time-slot:hover {
     background-image: linear-gradient(rgb(0 0 0/20%) 0 0);
+}
+
+.times-labels-container {
+    display: flex;
+    flex-direction: column;
+    margin-right: 10px;
+}
+.header {
+    height: 77px;
+    box-sizing: border-box;
+}
+.time-label {
+    font-size: 12px;
+    height: 33px;
+    white-space: nowrap;
+    text-align: right;
 }

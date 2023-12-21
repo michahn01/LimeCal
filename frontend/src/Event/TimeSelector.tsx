@@ -1,46 +1,122 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import './css/TimeSelector.css'
 
 
+// ------------------------------
+// ------------------------------
+// ** The overall idea: 
 
+// The "TimeSelector" component refers to the entire panel-structure
+// where the user can drag-select times of their choice. 
+
+// The TimeSelector panel is split into multiple columns, each  
+// representing its own date. The "DateColumn" component refers 
+// to each column representing that date. 
+
+// Each DateColumn component itself contains many contiguous cells
+// representing 15-minute intervals. A user can click or drag over
+// a cell to "select" it (making it green). Clicking on  
+// an already selected cell de-selects all cells dragged over until
+// mouse is released.
+// ------------------------------
+// ------------------------------
+
+
+
+
+// ------------------------------ ** Utility functions:
+// ------------------------------
+
+// just a utility function for extracting the date and day from a Date obejct
+const parseDayAndDate = (date: Date): string[] => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const day = days[date.getDay()];
+    const month = months[date.getMonth()];
+    const dateNumber = date.getDate();
+
+    return [day, `${month} ${dateNumber}`];
+}
+// utility function for converting hh:mm:ss to "X AM" or "Y PM" format
+const convertTimestamp = (timestamp: string): string => {
+    const hoursString = timestamp.split(':')[0];
+    let hours = parseInt(hoursString);
+
+    const amPm = hours < 12 ? 'AM' : 'PM';
+    hours = hours % 12;
+    hours = hours === 0 ? 12 : hours;
+
+    return `${hours} ${amPm}`;
+}
+// ------------------------------
+// ------------------------------ ** End of Utility functions
+
+
+
+
+// ------------------------------ ** DateColumn component
+// ------------------------------
+
+// These enums are for deciding border styling on column elements (purely cosmetic purposes)
 enum ColumnPosition {
     LeftMost, 
     Middle,
     RightMost
 }
 type DateColumnProps = {
-    col_pos: ColumnPosition;
-    date: Date;
-    times: string[];
-    isDragging: boolean;
-    addingTimes: boolean;
-    // isSelected: (date: Date, time: string) => boolean;
-    timeSlotHovered: (date: Date, time: string) => void;
-    timeSlotClicked: (date: Date, time: string, timeSlotActive: boolean) => void;
-    horizontalBound: React.RefObject<Date[]>;
-    verticalBound: React.RefObject<string[]>;
+
+    col_pos: ColumnPosition; // used for styling borders
+    date: Date; // the particular date represented by each column
+    times: string[]; // a list of all 15-minute intervals to be displayed
+
+    isDragging: boolean; // indicates whether user is dragging (i.e., a selection/de-selection is being made).
+                         // When user isDragging, they'll be drawing a rectangular box over the panel region.
+
+    horizontalBound: Date[]; // the horizontal bound of the user's rectangular selection box.
+                             // horizontalBound[0] := the inclusive start of the box
+                             // horizontalBound[1] := the inclusive end of the box
+
+    addingTimes: boolean; // whether the user is selecting or deselecting time slots (if the user 
+                          // had clicked on an already-selected time slot, they are de-selecting)
+
+    isSelected: (date: Date, time: string) => boolean; // determines whether a given time slot (marked by date & time) 
+                                                       // is part of user's dragged selection box.
+
+
+    // timeSlotHovered: a callback function that runs when a user hovers over a time
+    // slot. Affects states in DateColumn's parent component (i.e., TimeSelector).
+    timeSlotHovered: (date: Date, time: string) => void; 
+
+    // timeSlotClicked: a callback function that runs when a user clicks on a time
+    // slot. Affects states in DateColumn's parent component (i.e., TimeSelector).
+    timeSlotClicked: (date: Date, time: string, timeSlotActive: boolean) => void; 
 }
+
 const DateColumn: React.FC<DateColumnProps> = 
-    ({ col_pos, date, times, isDragging, addingTimes, timeSlotHovered, timeSlotClicked, horizontalBound, verticalBound }) => {
+    ({ col_pos, date, times, isDragging, addingTimes, 
+       isSelected, horizontalBound, timeSlotHovered, timeSlotClicked }) => {
+    
+    // to keep track of all selected time slots in this column. 
+    // note: if a time slot is selected, it will stay selected until user de-selects it. 
+    // So, even if a time slot was not part of user's most recently drawn selection-box, 
+    // it will still be part of activeTimeSlots if it was selected at some point before.
     const [activeTimeSlots, setActiveTimeSlots] = useState<Set<string>>(new Set());
-    const isSelected = (date: Date, time: string): boolean | "" | null => {
-        let bonk: any = (horizontalBound.current !== null && horizontalBound.current[0] <= date && 
-            date <= horizontalBound.current[1] &&
-            verticalBound.current !== null && verticalBound.current[0] <= time && 
-            time <= verticalBound.current[1]);
-        // console.log(horizontalBound, verticalBound, bonk);
-        return bonk
-    }
+
+    // (for the purely cosmetic purpose of displaying the column's label)
+    // dateDay[0] := the day (e.g., "Thu")
+    // dateDay[1] := the date (e.g., "Dec 21")
+    const dateDay = parseDayAndDate(date);
+
+    // the following code runs when isDragging changes. I.e., when user either starts
+    // dragging a selection or when user finishes dragging a selection.
     useEffect(() => {
-        if (!isDragging && 
-            horizontalBound.current !== null && horizontalBound.current[0] <= date && 
-            date <= horizontalBound.current[1]) {
+        if (!isDragging && horizontalBound[0] <= date && date <= horizontalBound[1]) {
             const updatedSlots: Set<string> = new Set(activeTimeSlots);
             for (const time of times) {
                 if (isSelected(date, time)) {
                     if (addingTimes) {
                         updatedSlots.add(time);
-                        console.log(date, time)
                     }
                     else {
                         updatedSlots.delete(time);
@@ -50,12 +126,14 @@ const DateColumn: React.FC<DateColumnProps> =
             setActiveTimeSlots(updatedSlots);
         }
     }, [isDragging])
+
+
     return(
         <div className='date-column'>
             <div className='date-column-header'
                  style={{borderLeft: col_pos === ColumnPosition.LeftMost ? '1px solid lightgrey' : '' }}>
-                <h2>Day</h2>
-                <p>date</p>
+                <h2>{dateDay[0]}</h2>
+                <p>{dateDay[1]}</p>
             </div>
             <div className='date-column-timeslot-container'
                  style={{borderRight: col_pos !== ColumnPosition.RightMost ? '1px solid whitesmoke' : '' }}>
@@ -64,15 +142,18 @@ const DateColumn: React.FC<DateColumnProps> =
                         <div 
                         key={time}
                         className='selectable-time-slot'
-                        style={{
+                        style={{ 
                             borderBottom: (index + 1) % 4 === 0 ? '1px solid whitesmoke' : '',
+
+                            // If the timeslot is currently within the user's selection box region, 
+                            // its color depends solely on whether the user is adding times or deleting times.
+                            // If not, the color depends on whether it was a previously selected time slot. 
                             backgroundColor: ((isSelected(date, time)) ? addingTimes : activeTimeSlots.has(time))  ? '#68b516' : 'lightgrey'
                         }}
                         onMouseDown={() => { 
                             timeSlotClicked(date, time, activeTimeSlots.has(time));
                         }}
-                        onMouseEnter={() => {timeSlotHovered(date, time)}}
-                        >
+                        onMouseEnter={() => {timeSlotHovered(date, time)}}>
                         </div>
                     )
                 })}
@@ -80,31 +161,38 @@ const DateColumn: React.FC<DateColumnProps> =
         </div>
     )
 }
-const canSkipRender = (prevProps: DateColumnProps, nextProps: DateColumnProps): any => {
-    return false;
-    // return (prevProps.isDragging) && 
-    // ((nextProps.horizontalBound[0].current !== null && nextProps.date < nextProps.horizontalBound[0].current) || 
-    // (nextProps.horizontalBound[1].current && nextProps.date > nextProps.horizontalBound[1].current));
-}
-const MemoizedDateColumn = React.memo(DateColumn, canSkipRender);
+// ------------------------------
+// ------------------------------ End of DateColumn component
+
+
+
+
+// ------------------------------
+// ------------------------------
+// ** TimeSelector 
 
 const TimeSelector = () => {
 
-    // To select a range of time slots, the user will drag-select over 
-    // multiple panels of dates. When that happens, a "selection box"
-    // will be drawn invisibly. Time slots that fall within this selection 
-    // box will be highligted.
-
+    // indicates whether user is dragging (i.e., a selection/de-selection is being made).
+    // When user isDragging, they'll be drawing a rectangular box over the panel region.
     const [isDragging, setIsDragging] = useState<boolean>(false);
+
+    // whether the user is selecting or deselecting time slots (if the user 
+    // had clicked on an already-selected time slot, they are de-selecting)
     const [addingTimes, setAddingTimes] = useState<boolean>(false);
+
+    // the Date of the specific cell that the user clicked on to begin dragging a selection region.
     const [startCellDate, setStartCellDate] = useState<Date>(new Date());
+    // the time of the specific cell that the user clicked on to begin dragging a selection region.
     const [startCellTime, setStartCellTime] = useState<string>('');
+
+    // horizontal and vertical bounds of the user's selection region. Constantly 
+    // changes as the user drags over time slots.
     const [horizontalBound, setHorizontalBound] = useState<Date[]>([new Date(), new Date()]);
     const [verticalBound, setVerticalBound] = useState<string[]>(['', '']);
-    const horizontalBoundRef = useRef<Date[]>(horizontalBound);
-    const verticalBoundRef = useRef<string[]>(verticalBound);
 
-
+    // callBack for when mouse is lifted (for when selection has been finished being drawn)
+    // primary job is to set isDragging to false.
     const DraggingDone = () => {
         if (isDragging) {
             setIsDragging(false);
@@ -115,21 +203,21 @@ const TimeSelector = () => {
         if (!isDragging) {
             return;
         }
-        // Add event listener for mouseup to the whole document
         document.addEventListener('mouseup', DraggingDone);
-        // Clean up the event listener
         return () => {
             document.removeEventListener('mouseup', DraggingDone);
         };
     }, [isDragging]);
 
-
+    // function for determining whether a particular time slot is part of the selection box
+    // being dragged/drawn by the user.
     const isSelected = (date: Date, time: string): boolean => {
-        // console.log("run")
         return (horizontalBound[0] <= date && date <= horizontalBound[1] &&
                 verticalBound[0] <= time && time <= verticalBound[1]);
     }   
 
+    // callback function for when user clicks on a particular time slot to being drawing a selection.
+    // Function will be called from within a DateColumn component. 
     const timeSlotClicked = (date: Date, time: string, timeSlotActive: boolean): void => {
         setIsDragging(true);
         setAddingTimes(!timeSlotActive);
@@ -137,13 +225,12 @@ const TimeSelector = () => {
         setStartCellTime(time);
         setHorizontalBound([date, date]);
         setVerticalBound([time, time]);
-        verticalBoundRef.current = [time, time];
-        horizontalBoundRef.current = [date, date];
     }
 
+    // callback function for when user hovers over a particular time slot.
+    // Function will be called from within a DateColumn component.
     const timeSlotHovered = (date: Date, time: string): void => {
         if (isDragging) {
-            // console.log("HOVERED", date, time, horizontalBoundRef, verticalBoundRef)
             let min_horizontal_bound: Date = date < startCellDate ? date : startCellDate;
             let max_horizontal_bound: Date = date > startCellDate ? date : startCellDate;
             let min_vertical_bound: string = time < startCellTime ? time : startCellTime;
@@ -151,18 +238,17 @@ const TimeSelector = () => {
 
             setVerticalBound([min_vertical_bound, max_vertical_bound]);
             setHorizontalBound([min_horizontal_bound, max_horizontal_bound]);
-            verticalBoundRef.current = [min_vertical_bound, max_vertical_bound];
-            horizontalBoundRef.current = [min_horizontal_bound, max_horizontal_bound];
         }
     }
 
+    // a utility function for development and testing (generates a fixed interval of time slots)
     const getIntervals = (): string[] => {
         const intervals = [];
         const currentDate = new Date();
         
         const startTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
         const endTime = new Date(startTime.getTime());
-        endTime.setHours(endTime.getHours() + 8); 
+        endTime.setHours(endTime.getHours() + 12); 
     
         for (let time = startTime; time < endTime; time.setMinutes(time.getMinutes() + 15)) {
             intervals.push(time.toISOString().split('T')[1].split('.')[0]);
@@ -170,7 +256,7 @@ const TimeSelector = () => {
     
         return intervals;
     };
-
+    // a utility function for development and testing (generates a fixed interval of dates)
     const generateDates = (): Date[] => {
         let dates: Date[] = [];
         let currentDate = new Date();
@@ -181,35 +267,48 @@ const TimeSelector = () => {
         }
       
         return dates;
-      }
+    }
     
     const [times] = useState(getIntervals());
     const [dates] = useState(generateDates());
     
     return (
         <div className='time-selector'>
-            <button onClick={() => {console.log(horizontalBound, horizontalBoundRef)}}>Click</button>
+            <div className='times-labels-container'>
+            <div className='header'></div>
+            {times.map((time, index) => {
+                if ((index + 1) % 4 !== 0) {
+                    return;
+                }
+                return (
+                    <div key={time} className='time-label'>
+                        {convertTimestamp(time)}
+                    </div>
+                )
+            })}
+            </div>
             {dates.map((date, index) => {
                 return (
-                    <MemoizedDateColumn
-                    key={index}
+                    <DateColumn
+                    key={date.toISOString()}
                     col_pos={index === 0 ? ColumnPosition.LeftMost : 
                              (index === dates.length ? ColumnPosition.RightMost : ColumnPosition.Middle)}
                     date={date}
                     times={times}
                     isDragging={isDragging}
                     addingTimes={addingTimes}
-                    // isSelected={isSelected}
+                    isSelected={isSelected}
                     timeSlotHovered={timeSlotHovered}
                     timeSlotClicked={timeSlotClicked}
-                    horizontalBound={horizontalBoundRef}
-                    verticalBound={verticalBoundRef}
-                    ></MemoizedDateColumn>
+                    horizontalBound={horizontalBound}
+                    ></DateColumn>
                 )
             })}
         </div>
     );
 };
+// ------------------------------
+// ------------------------------ End of TimeSelector
 
 
 export default TimeSelector

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './css/TimeSelector.css'
 
 
@@ -14,21 +14,33 @@ type DateColumnProps = {
     times: string[];
     isDragging: boolean;
     addingTimes: boolean;
-    isSelected: (date: Date, time: string) => boolean;
+    // isSelected: (date: Date, time: string) => boolean;
     timeSlotHovered: (date: Date, time: string) => void;
     timeSlotClicked: (date: Date, time: string, timeSlotActive: boolean) => void;
-    horizontalBound: Date[];
+    horizontalBound: React.RefObject<Date[]>;
+    verticalBound: React.RefObject<string[]>;
 }
 const DateColumn: React.FC<DateColumnProps> = 
-    ({ col_pos, date, times, isDragging, addingTimes, isSelected, timeSlotHovered, timeSlotClicked, horizontalBound }) => {
+    ({ col_pos, date, times, isDragging, addingTimes, timeSlotHovered, timeSlotClicked, horizontalBound, verticalBound }) => {
     const [activeTimeSlots, setActiveTimeSlots] = useState<Set<string>>(new Set());
+    const isSelected = (date: Date, time: string): boolean | "" | null => {
+        let bonk: any = (horizontalBound.current !== null && horizontalBound.current[0] <= date && 
+            date <= horizontalBound.current[1] &&
+            verticalBound.current !== null && verticalBound.current[0] <= time && 
+            time <= verticalBound.current[1]);
+        // console.log(horizontalBound, verticalBound, bonk);
+        return bonk
+    }
     useEffect(() => {
-        if (!isDragging && horizontalBound[0] <= date && date <= horizontalBound[1]) {
+        if (!isDragging && 
+            horizontalBound.current !== null && horizontalBound.current[0] <= date && 
+            date <= horizontalBound.current[1]) {
             const updatedSlots: Set<string> = new Set(activeTimeSlots);
             for (const time of times) {
                 if (isSelected(date, time)) {
                     if (addingTimes) {
                         updatedSlots.add(time);
+                        console.log(date, time)
                     }
                     else {
                         updatedSlots.delete(time);
@@ -68,6 +80,13 @@ const DateColumn: React.FC<DateColumnProps> =
         </div>
     )
 }
+const canSkipRender = (prevProps: DateColumnProps, nextProps: DateColumnProps): any => {
+    return false;
+    // return (prevProps.isDragging) && 
+    // ((nextProps.horizontalBound[0].current !== null && nextProps.date < nextProps.horizontalBound[0].current) || 
+    // (nextProps.horizontalBound[1].current && nextProps.date > nextProps.horizontalBound[1].current));
+}
+const MemoizedDateColumn = React.memo(DateColumn, canSkipRender);
 
 const TimeSelector = () => {
 
@@ -82,6 +101,8 @@ const TimeSelector = () => {
     const [startCellTime, setStartCellTime] = useState<string>('');
     const [horizontalBound, setHorizontalBound] = useState<Date[]>([new Date(), new Date()]);
     const [verticalBound, setVerticalBound] = useState<string[]>(['', '']);
+    const horizontalBoundRef = useRef<Date[]>(horizontalBound);
+    const verticalBoundRef = useRef<string[]>(verticalBound);
 
 
     const DraggingDone = () => {
@@ -116,11 +137,13 @@ const TimeSelector = () => {
         setStartCellTime(time);
         setHorizontalBound([date, date]);
         setVerticalBound([time, time]);
+        verticalBoundRef.current = [time, time];
+        horizontalBoundRef.current = [date, date];
     }
 
     const timeSlotHovered = (date: Date, time: string): void => {
         if (isDragging) {
-            // console.log("HOVERED", date, time)
+            // console.log("HOVERED", date, time, horizontalBoundRef, verticalBoundRef)
             let min_horizontal_bound: Date = date < startCellDate ? date : startCellDate;
             let max_horizontal_bound: Date = date > startCellDate ? date : startCellDate;
             let min_vertical_bound: string = time < startCellTime ? time : startCellTime;
@@ -128,6 +151,8 @@ const TimeSelector = () => {
 
             setVerticalBound([min_vertical_bound, max_vertical_bound]);
             setHorizontalBound([min_horizontal_bound, max_horizontal_bound]);
+            verticalBoundRef.current = [min_vertical_bound, max_vertical_bound];
+            horizontalBoundRef.current = [min_horizontal_bound, max_horizontal_bound];
         }
     }
 
@@ -163,9 +188,10 @@ const TimeSelector = () => {
     
     return (
         <div className='time-selector'>
+            <button onClick={() => {console.log(horizontalBound, horizontalBoundRef)}}>Click</button>
             {dates.map((date, index) => {
                 return (
-                    <DateColumn
+                    <MemoizedDateColumn
                     key={index}
                     col_pos={index === 0 ? ColumnPosition.LeftMost : 
                              (index === dates.length ? ColumnPosition.RightMost : ColumnPosition.Middle)}
@@ -173,11 +199,12 @@ const TimeSelector = () => {
                     times={times}
                     isDragging={isDragging}
                     addingTimes={addingTimes}
-                    isSelected={isSelected}
+                    // isSelected={isSelected}
                     timeSlotHovered={timeSlotHovered}
                     timeSlotClicked={timeSlotClicked}
-                    horizontalBound={horizontalBound}
-                    ></DateColumn>
+                    horizontalBound={horizontalBoundRef}
+                    verticalBound={verticalBoundRef}
+                    ></MemoizedDateColumn>
                 )
             })}
         </div>

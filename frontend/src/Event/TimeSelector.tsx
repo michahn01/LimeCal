@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+
+import ReactSlider from 'react-slider'; 
+
+
 import './css/TimeSelector.css'
 
 
@@ -27,7 +31,7 @@ import './css/TimeSelector.css'
 // ------------------------------ ** Utility functions:
 // ------------------------------
 
-// just a utility function for extracting the date and day from a Date obejct
+// extracts the date and day from a Date obejct
 const parseDayAndDate = (date: Date): string[] => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -38,30 +42,34 @@ const parseDayAndDate = (date: Date): string[] => {
 
     return [day, `${month} ${dateNumber}`];
 }
-// utility function for converting hh:mm:ss to "X AM" or "Y PM" format
+// converts hh:mm:ss to "X AM" or "Y PM" format
 const convertTimestamp = (timestamp: string): string => {
     const hoursString = timestamp.split(':')[0];
     let hours = parseInt(hoursString);
 
-    const amPm = hours < 12 ? 'AM' : 'PM';
+    const amPm = (hours < 12 || hours === 24) ? 'AM' : 'PM';
     hours = hours % 12;
     hours = hours === 0 ? 12 : hours;
 
     return `${hours} ${amPm}`;
 }
-// a utility function for development and testing (generates a fixed interval of time slots)
-const getIntervals = (): string[] => {
-    const intervals = [];
-    const currentDate = new Date();
-    
-    const startTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-    const endTime = new Date(startTime.getTime());
-    endTime.setHours(endTime.getHours() + 12); 
-
-    for (let time = startTime; time < endTime; time.setMinutes(time.getMinutes() + 15)) {
-        intervals.push(time.toISOString().split('T')[1].split('.')[0]);
+// given an inclusive start and inclusive end time in hh:mm format, returns an array 
+// containing the *start* times of all 15-minute intervals in that range.
+const getIntervals = (inclusiveStartTime: string, inclusiveEndTime: string): string[] => {
+    const parseTime = (timeStr: string): Date => {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const time = new Date();
+        time.setHours(hours, minutes, 0, 0);
+        return time;
     }
 
+    const intervals: string[] = [];
+    const startTime = parseTime(inclusiveStartTime);
+    const endTime = parseTime(inclusiveEndTime);
+
+    for (let current = new Date(startTime); current < endTime; current = new Date(current.getTime() + 15 * 60000)) {
+        intervals.push(current.toTimeString().substring(0, 5));
+    }
     return intervals;
 };
 // a utility function for development and testing (generates a fixed interval of dates)
@@ -126,8 +134,8 @@ const DateColumn: React.FC<DateColumnProps> =
     
     // to keep track of all selected time slots in this column. 
     // note: if a time slot is selected, it will stay selected until user de-selects it. 
-    // So, even if a time slot was not part of user's most recently drawn selection-box, 
-    // it will still be part of activeTimeSlots if it was selected at some point before.
+    // So, even if a time slot was not part of user's most recently drawn selection-box, it
+    // will still be part of activeTimeSlots if it was selected before and not yet deselected.
     const [activeTimeSlots, setActiveTimeSlots] = useState<Set<string>>(new Set());
 
     // (for the purely cosmetic purpose of displaying the column's label)
@@ -169,7 +177,7 @@ const DateColumn: React.FC<DateColumnProps> =
                         <div 
                         key={time}
                         className='selectable-time-slot'
-                        style={{ 
+                        style={{
                             borderBottom: (index + 1) % 4 === 0 ? '1px solid whitesmoke' : '',
 
                             // If the timeslot is currently within the user's selection box region, 
@@ -192,13 +200,29 @@ const DateColumn: React.FC<DateColumnProps> =
 // ------------------------------ End of DateColumn component
 
 
+// ------------------------------ ** TimeRangeSlider 
+// ------------------------------
+// ------------------------------  
+// ------------------------------ End of TimeRangeSlider
 
 
+
+// ------------------------------ ** TimeSelector 
 // ------------------------------
-// ------------------------------
-// ** TimeSelector 
 
 const TimeSelector = () => {
+
+    // viewWindowRange contains the inclusive start and inclusive end times of the 
+    // viewing window of the selection panel. The user can adjust the range of time 
+    // slots using the 'time-range-selector-slider'.
+    const [viewWindowRange, setViewWindowRange] = useState<string[]>(["08:00", "17:00"]);
+
+    // 'times' contains the start times of all 15-minute time slots that must be 
+    // displayed in selection panel's viewing window.  
+    const [times, setTimes] = useState<string[]>([]);
+
+    // labels on the time-range-selector-slider
+    const [sliderLabels, setSliderLabels] = useState(["8 AM", "5 PM"]);
 
     // indicates whether user is dragging (i.e., a selection/de-selection is being made).
     // When user isDragging, they'll be drawing a rectangular box over the panel region.
@@ -267,11 +291,52 @@ const TimeSelector = () => {
             setHorizontalBound([min_horizontal_bound, max_horizontal_bound]);
         }
     }
+
+    // callback function for when user uses the time range slider to adjust the
+    // time interval to be displayed on the selection panel's viewing window.
+    // thumbValue := values of the thumbs on the slider.
+    const sliderAfterChange = (thumbValue: number[], _: number) => {
+        const newRange: string[] = [`${thumbValue[0]}:00`.padStart(5, '0'), `${thumbValue[1]}:00`.padStart(5, '0')]
+        setViewWindowRange(newRange);
+
+        setTimes(getIntervals(newRange[0], newRange[1]));
+    }
+    const sliderOnChange = (thumbValue: number[], _: number) => {
+        const newRange: string[] = [`${thumbValue[0]}:00`.padStart(5, '0'), `${thumbValue[1]}:00`.padStart(5, '0')]
+        setSliderLabels(newRange);
+    }
+    useEffect(() => {
+        setViewWindowRange(viewWindowRange);
+        setTimes(getIntervals(viewWindowRange[0], viewWindowRange[1]));
+    }, [])
     
-    const [times] = useState(getIntervals());
     const [dates] = useState(generateDates());
     
     return (
+        <div>
+        <div className='slider-area'>
+        <div>
+            <div>{convertTimestamp(sliderLabels[0])} - {convertTimestamp(sliderLabels[1])}</div>
+            <ReactSlider
+            className="time-range-selector-slider"
+            thumbClassName="slider-thumb"
+            trackClassName="slider-track"
+            defaultValue={[8, 17]}
+            ariaLabelledby={['first-slider-label', 'second-slider-label']}
+            ariaValuetext={state => `Thumb value ${state.valueNow}`}
+            renderThumb={(props, _) => <div {...props}></div>}
+            pearling
+            minDistance={1}
+            min={0}
+            max={24}
+            onAfterChange={sliderAfterChange}
+            onChange={sliderOnChange}
+            />
+        </div>
+        <p className="slider-instruction">
+            Use the slider to adjust the the viewable area's start and end times.
+        </p>
+        </div>
         <div className='time-selector'>
             <div className='times-labels-container'>
             <div className='header'></div>
@@ -285,6 +350,9 @@ const TimeSelector = () => {
                     </div>
                 )
             })}
+            <div className='time-label'>
+                {convertTimestamp(viewWindowRange[1])}
+            </div>
             </div>
             {dates.map((date, index) => {
                 return (
@@ -303,6 +371,7 @@ const TimeSelector = () => {
                     ></DateColumn>
                 )
             })}
+        </div>
         </div>
     );
 };

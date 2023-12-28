@@ -1,15 +1,23 @@
-import { useState } from "react"
+import React, { useState } from "react"
 import "./CreateEvent.css"
+import DateSelector from "./DateSelector";
 
 const Create = () => {
-    const [eventTitle, setEventTitle] = useState("");
-    const [password, setPassword] = useState("");
-    const [password2, setPassword2] = useState("");
+    const [eventTitle, setEventTitle] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [password2, setPassword2] = useState<string>("");
+    const [submitMessage, setSubmitMessage] = useState<string>("");
 
-    const [submitMessage, setSubmitMessage] = useState("");
+    const [calSelectedDates, setCalSelectedDates] = useState<string[]>([]);
 
     const sendApiRequest = () => {
 
+    }
+
+    const updateSelectedDates = (dates: Set<string>): void => {
+        const new_dates: Array<string> = Array.from(dates);
+        new_dates.sort();
+        setCalSelectedDates(new_dates);
     }
 
     const submitForm = () => {
@@ -44,6 +52,10 @@ const Create = () => {
                 </input>
                 </div>
 
+                <center>
+                <DateSelector></DateSelector>
+                </center>
+
                 <div className="form-group">
                 <label htmlFor="password">Password to Event Link (optional):</label>
                 <input type="password" id="password" name="event_password"
@@ -69,7 +81,7 @@ const Create = () => {
 
                 {submitMessage != "" && <p style={{color:'red'}}>{submitMessage}</p>}
                 
-                <button onClick={submitForm}>Submit</button>
+                <button onClick={submitForm} className="create-event-button">Submit</button>
             </div>
             </div>
         </div>

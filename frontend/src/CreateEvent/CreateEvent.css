@@ -20,11 +20,13 @@
   width: 97%;
   font-family: 'Nunito Sans', sans-serif;
   max-width: 800px;
+  display: flex;
 }
 
 #event-form {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .form-group {
@@ -42,7 +44,7 @@
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  box-sizing: border-box; /* So that width includes padding */
+  box-sizing: border-box;
 }
 
 .form-group textarea {
@@ -50,7 +52,7 @@
   resize: vertical;
 }
 
-button {
+.create-event-button {
   padding: 10px 15px;
   background-color: #5cb85c;
   border: none;
@@ -60,6 +62,6 @@ button {
   transition: background-color 0.3s;
 }
 
-button:hover {
+.create-event-button:hover {
   background-color: #4cae4c;
 }

@@ -1,0 +1,73 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+
+.dates-select-container {
+  width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  font-family: "Poppins", sans-serif;
+}
+
+.calendar-row {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid lightgrey;
+}
+
+.calendar-date {
+  width: 14%;
+  aspect-ratio: 1 / 1;
+  text-align: left;
+  padding-top: 3px;
+  padding-left: 8px;
+  border-right: 1px solid lightgrey;
+}
+
+.calendar-header-cell {
+  width: 14%;
+  text-align: center;
+  padding: 5px;
+  background-color: rgb(171, 46, 46);
+  color: whitesmoke;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.calendar-control-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+    font-size: 23px;
+    padding-left: 15px;
+    padding-right: 15px;
+    box-sizing: border-box;
+}
+
+.control-button {
+    border: solid rgb(61, 61, 61);
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 5px;
+    background-color: transparent;
+    
+    cursor: pointer;
+}
+
+.right {
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+  }
+  
+  .left {
+    transform: rotate(135deg);
+    -webkit-transform: rotate(135deg);
+  }

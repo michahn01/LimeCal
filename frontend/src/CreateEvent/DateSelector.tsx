@@ -30,6 +30,23 @@ const DateSelector = () => {
     // firstDates will hold the first date of every row to be displayed on the calendar.
     const [firstDates, setFirstDates] = useState<Date[]>([]);
 
+    // whether a selection box is being dragged
+    const [isDragging, setIsDragging] = useState<boolean>(false);
+
+    // whether the area being drawn/dragged is a selection or de-selection
+    const [isAdding, setIsAdding] = useState<boolean>(false);
+
+    const [startCellRowIndex, setStartCellRowIndex] = useState<Date>(new Date());
+    const [startCellRowOffset, setStarCellRowOffset] = useState<number>(0);
+
+    // horizontal bound of selection box, as the i-th date of a calendar row
+    const [horizontalBound, setHorizontalBound] = useState<number[]>([]);
+
+    // vertical bound of selection box, represented by the first date of each row
+    const [verticalBound, setVerticalBound] = useState<Date[]>([]);
+
+    const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+
     
     useEffect(() => {
         const dates: Date[] = [];
@@ -67,6 +84,67 @@ const DateSelector = () => {
         setFirstDates(dates);
     }
 
+    const DraggingDone = () => {
+        if (isDragging) {
+            setIsDragging(false);
+        }
+    };
+    useEffect(() => {
+        if (!isDragging && verticalBound.length > 1) {
+            const newSelectedDates: Set<string> = new Set(selectedDates);
+            for (let i: Date = new Date(verticalBound[0]); i <= verticalBound[1]; i.setDate(i.getDate() + 7)) {
+                const currDate: Date = new Date(i);
+                currDate.setDate(currDate.getDate() + horizontalBound[0]);
+                for (let j: number = horizontalBound[0]; j <= horizontalBound[1]; ++j) {
+                    if (isAdding) {
+                        newSelectedDates.add(currDate.toISOString());
+                    }
+                    else {
+                        newSelectedDates.delete(currDate.toISOString());
+                    }
+                    currDate.setDate(currDate.getDate() + 1);
+                }
+            }
+            setSelectedDates(newSelectedDates);
+            return;
+        }
+        document.addEventListener('mouseup', DraggingDone);
+        return () => {
+            document.removeEventListener('mouseup', DraggingDone);
+        };
+    }, [isDragging]);
+
+    // callback function for when a cell representing a date is clicked
+    // 'cellActive' := whether a cell is already selected
+    const dateCellClicked = (cellActive: boolean, rowDate: Date, cellIndex: number) => {
+        if (!isDragging) {
+            setIsDragging(true);
+            setIsAdding(!cellActive);
+            setStartCellRowIndex(rowDate);
+            setStarCellRowOffset(cellIndex);
+            setHorizontalBound([cellIndex, cellIndex]);
+            setVerticalBound([rowDate, rowDate]);
+        }
+    }
+    const dateCellHovered = (rowDate: Date, cellIndex: number) => {
+        if (isDragging) {
+
+            let min_horizontal_bound: number = cellIndex < startCellRowOffset ? cellIndex : startCellRowOffset;
+            let max_horizontal_bound: number = cellIndex > startCellRowOffset ? cellIndex : startCellRowOffset;
+            let min_vertical_bound: Date = rowDate < startCellRowIndex ? rowDate : startCellRowIndex;
+            let max_vertical_bound: Date = rowDate > startCellRowIndex ? rowDate : startCellRowIndex;
+
+            setVerticalBound([min_vertical_bound, max_vertical_bound]);
+            setHorizontalBound([min_horizontal_bound, max_horizontal_bound]);
+        }
+    }
+
+    // returns whether a cell is part of the selection box currently being drawn
+    const isSelected = (rowDate: Date, cellIndex: number): boolean => {
+        return !(verticalBound[0] > rowDate || rowDate > verticalBound[1] ||
+                horizontalBound[0] > cellIndex || cellIndex > horizontalBound[1]);
+    }
+
     return (
         <div className='dates-select-container'>
             <div className='calendar-control-bar'>
@@ -83,21 +161,25 @@ const DateSelector = () => {
                 )
             })}
             </div>
-            {firstDates.map((firstDate) => {
-                const currentDate: Date = new Date(firstDate);
+            {firstDates.map((rowDate) => {
+                const currentDate: Date = new Date(rowDate);
                 const rowDates: Date[] = [];
                 for (let i: number = 0; i < 7; ++i) {
                     rowDates.push(new Date(currentDate));
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
                 return (
-                    <div key={firstDate.toISOString()} className='calendar-row'>
+                    <div key={rowDate.toISOString()} className='calendar-row'>
                         {rowDates.map((cellDate, cellIndex) => {
                             return (
                                 <div key={cellDate.toISOString()} className='calendar-date'
+                                onMouseDown={() => {dateCellClicked(selectedDates.has(cellDate.toISOString()), rowDate, cellIndex)}}
+                                onMouseEnter={() => {dateCellHovered(rowDate, cellIndex)}}
                                 style={{borderLeft: cellIndex === 0 ? '1px solid lightgrey' : '',
                                         color: cellDate < currentMonthFirst || cellDate > currentMonthLast ? 
-                                        'lightgrey' : '#5c5c5c'}}>
+                                        'lightgrey' : '#5c5c5c', 
+                                        backgroundColor: isSelected(rowDate, cellIndex) ? (isAdding ? '#68b516' : '') : 
+                                        (selectedDates.has(cellDate.toISOString()) ? '#68b516' : '')}}>
                                     {cellDate.getDate()}
                                 </div>
                             )

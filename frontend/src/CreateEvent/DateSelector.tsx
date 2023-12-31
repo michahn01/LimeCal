@@ -1,5 +1,5 @@
 // a calendar UI for selecting dates
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import './DateSelector.css'
 
 const getFirstDateOfMonth = (date: Date): Date => {
@@ -19,8 +19,11 @@ const getMonth = (monthIndex: number): string => {
 
 const days: string[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const DateSelector = () => {
-    // "today" will be highlighted in the calendar
+type CalendarSelectorProps = {
+    active: boolean;
+};
+const CalendarSelector: React.FC<CalendarSelectorProps> = ({active}) => {
+
     const [today] = useState<Date>(new Date());
     // the first date of the month currently in display
     const [currentMonthFirst, setCurrentMonthFirst] = useState<Date>(() => getFirstDateOfMonth(today));
@@ -90,7 +93,10 @@ const DateSelector = () => {
         }
     };
     useEffect(() => {
-        if (!isDragging && verticalBound.length > 1) {
+        if (!isDragging) {
+            if (verticalBound.length < 2) {
+                return;
+            }
             const newSelectedDates: Set<string> = new Set(selectedDates);
             for (let i: Date = new Date(verticalBound[0]); i <= verticalBound[1]; i.setDate(i.getDate() + 7)) {
                 const currDate: Date = new Date(i);
@@ -145,8 +151,9 @@ const DateSelector = () => {
                 horizontalBound[0] > cellIndex || cellIndex > horizontalBound[1]);
     }
 
+
     return (
-        <div className='dates-select-container'>
+        <div className={active ? 'calendar-selector-container' : 'deactivated-container'}>
             <div className='calendar-control-bar'>
                 <button className='control-button left' onClick={() => {handleMonthChange(-1)}}></button>
                 <div>{getMonth(currentMonthFirst.getMonth())} {currentMonthFirst.getFullYear()}</div>
@@ -190,5 +197,109 @@ const DateSelector = () => {
         </div>
     )
 }
+
+type WeeklySelectorProps = {
+    active: boolean;
+};
+const WeeklySelector: React.FC<WeeklySelectorProps> = ({active}) => {
+    const [isDragging, setIsDragging] = useState<boolean>(false);
+    const [isAdding, setIsAdding] = useState<boolean>(false);
+
+    const [horizontalBound, setHorizontalBound] = useState<number[]>([]);
+    const [startCellIndex, setStartCellIndex] = useState<number>(0);
+    const [cellStates, setCellStates] = useState<boolean[]>(new Array(7).fill(false));
+
+    const DraggingDone = () => {
+        if (isDragging) {
+            setIsDragging(false);
+        }
+    };
+    useEffect(() => {
+        if (!isDragging) {
+            if (horizontalBound.length < 2) {
+                return;
+            }
+            const newCellStates = cellStates;
+            for (let i: number = 0; i < 7; ++i) {
+                if (isSelected(i)) {
+                    newCellStates[i] = isAdding;
+                }
+            }
+            setCellStates(newCellStates);
+            return;
+        }
+        document.addEventListener('mouseup', DraggingDone);
+        return () => {
+            document.removeEventListener('mouseup', DraggingDone);
+        };
+    }, [isDragging]);
+
+    // callback function for when a cell representing a date is clicked
+    // 'cellActive' := whether a cell is already selected
+    const dateCellClicked = (cellActive: boolean, cellIndex: number) => {
+        if (!isDragging) {
+            setIsDragging(true);
+            setIsAdding(!cellActive);
+            setStartCellIndex(cellIndex);
+            setHorizontalBound([cellIndex, cellIndex]);
+        }
+    }
+    const dateCellHovered = (cellIndex: number) => {
+        if (isDragging) {
+
+            let min_horizontal_bound: number = cellIndex < startCellIndex ? cellIndex : startCellIndex;
+            let max_horizontal_bound: number = cellIndex > startCellIndex ? cellIndex : startCellIndex;
+
+            setHorizontalBound([min_horizontal_bound, max_horizontal_bound]);
+        }
+    }
+
+    // returns whether a cell is part of the selection box currently being drawn
+    const isSelected = (cellIndex: number): boolean => {
+        return !(horizontalBound[0] > cellIndex || cellIndex > horizontalBound[1]);
+    }
+
+    return (
+        <div className={active ? 'weekly-selector-container' : 'deactivated-container'}>
+            <div className='calendar-row'>
+            {days.map((day, index) => {
+                return (
+                    <div key={day} className='weekly-date'
+                         style={{borderLeft: index === 0 ? '1px solid lightgrey' : '', 
+                                 backgroundColor: isSelected(index) ? (isAdding ? '#68b516' : '') : 
+                                 (cellStates[index] ? '#68b516' : '')}}
+                         onMouseEnter={() => {dateCellHovered(index)}}
+                         onMouseDown={() => {dateCellClicked(cellStates[index], index)}}>
+                        {day[0]}
+                    </div>
+                )
+            })}
+            </div>
+        </div>
+    )
+}
+
+const DateSelector = () => {
+    // whether user is selecting specific *dates* or *days* of the week
+    const [selectingDates, setSelectingDates] = useState<boolean>(true);  
+
+    return (
+        <div className='dates-select-container'>
+            <div className='date-selection-toggle-button'>
+                <div id='toggle-left' onClick={() => {setSelectingDates(true)}}
+                style={{backgroundColor: selectingDates ? 'purple' : '',
+                        color: selectingDates ? 'white' : '#272727'}}
+                >Specific Dates</div>
+                <div id='toggle-right' onClick={() => {setSelectingDates(false)}}
+                style={{backgroundColor: selectingDates ? '' : 'purple',
+                        color: selectingDates ? '#272727' : 'white'}}
+                >Days of the Week</div>
+            </div>
+            <CalendarSelector active={selectingDates}></CalendarSelector>
+            <WeeklySelector active={!selectingDates}></WeeklySelector>
+        </div>
+    )
+}
+
 
 export default DateSelector

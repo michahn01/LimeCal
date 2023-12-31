@@ -18,8 +18,6 @@ const convertTimestamp = (timestamp: string): string => {
 
 const Create = () => {
     const [eventTitle, setEventTitle] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-    const [password2, setPassword2] = useState<string>("");
     const [submitMessage, setSubmitMessage] = useState<string>("");
 
     const [calSelectedDates, setCalSelectedDates] = useState<string[]>([]);
@@ -48,18 +46,7 @@ const Create = () => {
             setSubmitMessage("Event title is required.")
             return;
         }
-        if (password != "" && password != password2) {
-            return;
-        }
         sendApiRequest();
-    }
-
-    const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPassword(e.target.value);
-        setSubmitMessage("");
-        if (e.target.value == "") {
-            setPassword2("");
-        }
     }
 
     // callback function for when user uses the time range slider to adjust the
@@ -77,22 +64,28 @@ const Create = () => {
     return (
         <div id="page-body">
             <div className="form-container">
-            <div id="event-form">
-                <h2>Create a New Event</h2>
                 
                 <div className="form-group">
-                <label htmlFor="title">Event Title:</label>
+                <h1>Create a New Event</h1>
                 <input type="text" id="title" name="event_title" required
                     value={eventTitle} 
+                    placeholder="Event Title"
                     onChange={(e) => {setSubmitMessage(""); setEventTitle(e.target.value)}}>
                 </input>
                 </div>
 
-                <center>
-                <DateSelector></DateSelector>
-                </center>
+                <div className='time-selection-area'>
+                    <div className='date-selection-column'>
+                        <h2>What dates might work?</h2>
 
-                <div className='slider-area'>
+                        <DateSelector></DateSelector>
+                    </div>
+                    <div className='time-selection-column'>
+
+                    </div>  
+                </div>
+
+                {/* <div className='slider-area'>
                 <div>
                     <div>{convertTimestamp(sliderLabels[0])} - {convertTimestamp(sliderLabels[1])}</div>
                     <ReactSlider
@@ -114,35 +107,11 @@ const Create = () => {
                 <p className="slider-instruction">
                     Use the slider to adjust the the viewable area's start and end times.
                 </p>
-                </div>
-
-                <div className="form-group">
-                <label htmlFor="password">Password to Event Link (optional):</label>
-                <input type="password" id="password" name="event_password"
-                    value={password} onChange={handlePassword}>
-                </input>
-                </div>
-
-                {password != "" && 
-                <div className="form-group">
-                <label htmlFor="repeat_password">Repeat Password:</label>
-                <input type="password" id="repeat_password"
-                    value={password2}
-                    onChange={(e) => {setSubmitMessage(""); setPassword2(e.target.value)}}>
-                </input>
-                </div>
-                }
-
-                {(password2 != "") && 
-                (password2 == password ? 
-                <p style={{color:'green'}}>Passwords match!</p> :
-                <p style={{color:'red'}}>Passwords do not match.</p>)
-                }
+                </div> */}
 
                 {submitMessage != "" && <p style={{color:'red'}}>{submitMessage}</p>}
                 
                 <button onClick={submitForm} className="create-event-button">Submit</button>
-            </div>
             </div>
         </div>
     )

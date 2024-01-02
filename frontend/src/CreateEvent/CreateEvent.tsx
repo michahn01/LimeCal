@@ -1,5 +1,7 @@
 import React, { useState } from "react"
 import ReactSlider from 'react-slider'; 
+import moment from 'moment-timezone';
+import TimezoneSelect, { type ITimezone } from 'react-timezone-select'
 
 import "./CreateEvent.css"
 import DateSelector from "./DateSelector";
@@ -29,6 +31,10 @@ const Create = () => {
 
     // labels on the time-range-selector-slider
     const [sliderLabels, setSliderLabels] = useState(["8 AM", "5 PM"]);
+
+    const [selectedTimezone, setSelectedTimezone] = useState<ITimezone>(
+        Intl.DateTimeFormat().resolvedOptions().timeZone
+      )
 
 
     const sendApiRequest = () => {
@@ -81,37 +87,54 @@ const Create = () => {
                         <DateSelector></DateSelector>
                     </div>
                     <div className='time-selection-column'>
+                        <h2>What times might work?</h2>
 
+                        <div className='slider-area'>
+                        <div>
+                            <div className="slider-times">{convertTimestamp(sliderLabels[0])} - {convertTimestamp(sliderLabels[1])}</div>
+                            <ReactSlider
+                            className="time-range-selector-slider"
+                            thumbClassName="slider-thumb"
+                            trackClassName="slider-track"
+                            defaultValue={[8, 17]}
+                            ariaLabelledby={['first-slider-label', 'second-slider-label']}
+                            ariaValuetext={state => `Thumb value ${state.valueNow}`}
+                            renderThumb={(props, _) => <div {...props}></div>}
+                            pearling
+                            minDistance={1}
+                            min={0}
+                            max={24}
+                            onAfterChange={sliderAfterChange}
+                            onChange={sliderOnChange}
+                            />
+                        </div>
+                        <p className="slider-instruction">
+                            Respondees will specify their availabilities within 
+                            this time interval.
+                        </p>
+                        </div>
+
+                        <h3>Timezone:</h3>
+                        <TimezoneSelect 
+                        value={selectedTimezone}
+                        onChange={setSelectedTimezone}
+                        classNamePrefix="selector"
+                        styles={{
+                            control: (base) => ({
+                              ...base,
+                              width: '300px'
+                            }),
+                            menu: (base) => ({
+                              ...base
+                            })
+                          }}
+                        />
                     </div>  
                 </div>
 
-                {/* <div className='slider-area'>
-                <div>
-                    <div>{convertTimestamp(sliderLabels[0])} - {convertTimestamp(sliderLabels[1])}</div>
-                    <ReactSlider
-                    className="time-range-selector-slider"
-                    thumbClassName="slider-thumb"
-                    trackClassName="slider-track"
-                    defaultValue={[8, 17]}
-                    ariaLabelledby={['first-slider-label', 'second-slider-label']}
-                    ariaValuetext={state => `Thumb value ${state.valueNow}`}
-                    renderThumb={(props, _) => <div {...props}></div>}
-                    pearling
-                    minDistance={1}
-                    min={0}
-                    max={24}
-                    onAfterChange={sliderAfterChange}
-                    onChange={sliderOnChange}
-                    />
-                </div>
-                <p className="slider-instruction">
-                    Use the slider to adjust the the viewable area's start and end times.
-                </p>
-                </div> */}
-
-                {submitMessage != "" && <p style={{color:'red'}}>{submitMessage}</p>}
+                {submitMessage != "" && <p style={{color:'red', marginTop: '0px'}}>{submitMessage}</p>}
                 
-                <button onClick={submitForm} className="create-event-button">Submit</button>
+                <button onClick={submitForm} className="create-event-button">Create</button>
             </div>
         </div>
     )

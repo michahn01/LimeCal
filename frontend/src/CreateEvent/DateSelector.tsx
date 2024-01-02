@@ -50,7 +50,6 @@ const CalendarSelector: React.FC<CalendarSelectorProps> = ({active}) => {
 
     const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
 
-    
     useEffect(() => {
         const dates: Date[] = [];
 
@@ -150,7 +149,6 @@ const CalendarSelector: React.FC<CalendarSelectorProps> = ({active}) => {
         return !(verticalBound[0] > rowDate || rowDate > verticalBound[1] ||
                 horizontalBound[0] > cellIndex || cellIndex > horizontalBound[1]);
     }
-
 
     return (
         <div className={active ? 'calendar-selector-container' : 'deactivated-container'}>
@@ -297,6 +295,7 @@ const DateSelector = () => {
             </div>
             <CalendarSelector active={selectingDates}></CalendarSelector>
             <WeeklySelector active={!selectingDates}></WeeklySelector>
+            <p>Click and drag over {selectingDates ? "dates" : "days"} you want to select.</p>
         </div>
     )
 }

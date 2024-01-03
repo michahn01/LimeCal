@@ -29,8 +29,6 @@ const Create = () => {
     const calendarSelectorRef = useRef<CalendarSelectorMethods>(null);
     const weeklySelectorRef = useRef<WeeklySelectorMethods>(null);
 
-    const [calSelectedDates, setCalSelectedDates] = useState<string[]>([]);
-
     // viewWindowRange contains the inclusive start and inclusive end times of the 
     // viewing window of the selection panel. The user can adjust the range of time 
     // slots using the 'time-range-selector-slider'.
@@ -44,25 +42,45 @@ const Create = () => {
       )
 
     const sendApiRequest = () => {
-        if (selectingDates) {
-            calendarSelectorRef.current?.fetchSelection();
-        }
-        else {
-            weeklySelectorRef.current?.fetchSelection();
-        }
-    }
 
-    const updateSelectedDates = (dates: Set<string>): void => {
-        const new_dates: Array<string> = Array.from(dates);
-        new_dates.sort();
-        setCalSelectedDates(new_dates);
     }
 
     const submitForm = () => {
-        if (eventTitle.trimEnd() == "") {
+        if (eventTitle.trimEnd() === "") {
             setSubmitMessage("Event title is required.")
             return;
         }
+        let selection: string[];
+        if (selectingDates) {
+            const dates: Set<string> | undefined = calendarSelectorRef.current?.fetchSelection();
+            if (dates === undefined) {
+                setSubmitMessage("Something went wrong. Please try again.");
+                return;
+            }
+            if (dates.size === 0) {
+                setSubmitMessage("Please select at least 1 date.");
+                return;
+            }
+            selection = Array.from(dates).sort();
+        }
+        else {
+            const days: Array<boolean> | undefined = weeklySelectorRef.current?.fetchSelection();
+            if (days === undefined) {
+                setSubmitMessage("Something went wrong. Please try again.");
+                return;
+            }
+            selection = [];
+            for (let i = 0; i < days.length; ++i) {
+                if (days[i]) {
+                    selection.push(String(i));
+                }
+            }
+            if (selection.length === 0) {
+                setSubmitMessage("Please select at least 1 day.");
+                return;
+            }
+        }
+        console.log(selection);
         sendApiRequest();
     }
 
@@ -97,11 +115,11 @@ const Create = () => {
 
                         <div className='dates-select-container'>
                             <div className='date-selection-toggle-button'>
-                                <div id='toggle-left' onClick={() => {setSelectingDates(true)}}
+                                <div id='toggle-left' onClick={() => {setSelectingDates(true); setSubmitMessage('')}}
                                 style={{backgroundColor: selectingDates ? 'purple' : '',
                                         color: selectingDates ? 'white' : '#272727'}}
                                 >Specific Dates</div>
-                                <div id='toggle-right' onClick={() => {setSelectingDates(false)}}
+                                <div id='toggle-right' onClick={() => {setSelectingDates(false); setSubmitMessage('')}}
                                 style={{backgroundColor: selectingDates ? '' : 'purple',
                                         color: selectingDates ? '#272727' : 'white'}}
                                 >Days of the Week</div>

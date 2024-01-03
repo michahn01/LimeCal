@@ -23,7 +23,7 @@ type CalendarSelectorProps = {
     active: boolean;
 };
 interface CalendarSelectorMethods {
-    fetchSelection: () => void;
+    fetchSelection: () => Set<string>;
 }
 const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorProps>(({active}, ref) => {
 
@@ -53,10 +53,8 @@ const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorPro
 
     const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
 
-    console.log("calendar selector loading")
-
-    const pushData = () => {
-        console.log("fetching from calendar selector")
+    const pushData = (): Set<string> => {
+        return selectedDates;
     }
 
     useImperativeHandle(ref, () => ({
@@ -213,7 +211,7 @@ type WeeklySelectorProps = {
     active: boolean;
 };
 interface WeeklySelectorMethods {
-    fetchSelection: () => void;
+    fetchSelection: () => Array<boolean>;
 }
 const WeeklySelector = forwardRef<WeeklySelectorMethods, WeeklySelectorProps>(({active}, ref) => {
     const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -223,9 +221,8 @@ const WeeklySelector = forwardRef<WeeklySelectorMethods, WeeklySelectorProps>(({
     const [startCellIndex, setStartCellIndex] = useState<number>(0);
     const [cellStates, setCellStates] = useState<boolean[]>(new Array(7).fill(false));
 
-    console.log("weekly selector loading")
-    const pushData = () => {
-        console.log("fetching from weekly selector")
+    const pushData = (): Array<boolean> => {
+        return cellStates;
     }
 
     useImperativeHandle(ref, () => ({

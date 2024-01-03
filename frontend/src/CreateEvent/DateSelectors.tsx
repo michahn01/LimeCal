@@ -1,6 +1,6 @@
 // a calendar UI for selecting dates
-import React, { useState, useEffect } from 'react'
-import './DateSelector.css'
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react'
+import './DateSelectors.css'
 
 const getFirstDateOfMonth = (date: Date): Date => {
     const year = date.getFullYear();
@@ -22,7 +22,10 @@ const days: string[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 type CalendarSelectorProps = {
     active: boolean;
 };
-const CalendarSelector: React.FC<CalendarSelectorProps> = ({active}) => {
+interface CalendarSelectorMethods {
+    fetchSelection: () => void;
+}
+const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorProps>(({active}, ref) => {
 
     const [today] = useState<Date>(new Date());
     // the first date of the month currently in display
@@ -49,6 +52,16 @@ const CalendarSelector: React.FC<CalendarSelectorProps> = ({active}) => {
     const [verticalBound, setVerticalBound] = useState<Date[]>([]);
 
     const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+
+    console.log("calendar selector loading")
+
+    const pushData = () => {
+        console.log("fetching from calendar selector")
+    }
+
+    useImperativeHandle(ref, () => ({
+        fetchSelection: pushData,
+    }));
 
     useEffect(() => {
         const dates: Date[] = [];
@@ -194,18 +207,30 @@ const CalendarSelector: React.FC<CalendarSelectorProps> = ({active}) => {
             })}
         </div>
     )
-}
+});
 
 type WeeklySelectorProps = {
     active: boolean;
 };
-const WeeklySelector: React.FC<WeeklySelectorProps> = ({active}) => {
+interface WeeklySelectorMethods {
+    fetchSelection: () => void;
+}
+const WeeklySelector = forwardRef<WeeklySelectorMethods, WeeklySelectorProps>(({active}, ref) => {
     const [isDragging, setIsDragging] = useState<boolean>(false);
     const [isAdding, setIsAdding] = useState<boolean>(false);
 
     const [horizontalBound, setHorizontalBound] = useState<number[]>([]);
     const [startCellIndex, setStartCellIndex] = useState<number>(0);
     const [cellStates, setCellStates] = useState<boolean[]>(new Array(7).fill(false));
+
+    console.log("weekly selector loading")
+    const pushData = () => {
+        console.log("fetching from weekly selector")
+    }
+
+    useImperativeHandle(ref, () => ({
+        fetchSelection: pushData,
+    }));
 
     const DraggingDone = () => {
         if (isDragging) {
@@ -275,30 +300,9 @@ const WeeklySelector: React.FC<WeeklySelectorProps> = ({active}) => {
             </div>
         </div>
     )
-}
-
-const DateSelector = () => {
-    // whether user is selecting specific *dates* or *days* of the week
-    const [selectingDates, setSelectingDates] = useState<boolean>(true);  
-
-    return (
-        <div className='dates-select-container'>
-            <div className='date-selection-toggle-button'>
-                <div id='toggle-left' onClick={() => {setSelectingDates(true)}}
-                style={{backgroundColor: selectingDates ? 'purple' : '',
-                        color: selectingDates ? 'white' : '#272727'}}
-                >Specific Dates</div>
-                <div id='toggle-right' onClick={() => {setSelectingDates(false)}}
-                style={{backgroundColor: selectingDates ? '' : 'purple',
-                        color: selectingDates ? '#272727' : 'white'}}
-                >Days of the Week</div>
-            </div>
-            <CalendarSelector active={selectingDates}></CalendarSelector>
-            <WeeklySelector active={!selectingDates}></WeeklySelector>
-            <p>Click and drag over {selectingDates ? "dates" : "days"} you want to select.</p>
-        </div>
-    )
-}
+});
 
 
-export default DateSelector
+
+export { CalendarSelector, WeeklySelector };
+export type { CalendarSelectorMethods, WeeklySelectorMethods };

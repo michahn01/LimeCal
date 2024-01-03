@@ -1,10 +1,11 @@
-import React, { useState } from "react"
+import React, { useState, useRef } from "react"
 import ReactSlider from 'react-slider'; 
-import moment from 'moment-timezone';
 import TimezoneSelect, { type ITimezone } from 'react-timezone-select'
 
 import "./CreateEvent.css"
-import DateSelector from "./DateSelector";
+import "./DateSelectors.css"
+import { CalendarSelector, WeeklySelector } from "./DateSelectors.tsx";
+import type { CalendarSelectorMethods, WeeklySelectorMethods } from './DateSelectors.tsx';
 
 // converts hh:mm:ss to "X AM" or "Y PM" format
 const convertTimestamp = (timestamp: string): string => {
@@ -22,6 +23,12 @@ const Create = () => {
     const [eventTitle, setEventTitle] = useState<string>("");
     const [submitMessage, setSubmitMessage] = useState<string>("");
 
+    // whether user is selecting specific *dates* or *days* of the week
+    const [selectingDates, setSelectingDates] = useState<boolean>(true);  
+
+    const calendarSelectorRef = useRef<CalendarSelectorMethods>(null);
+    const weeklySelectorRef = useRef<WeeklySelectorMethods>(null);
+
     const [calSelectedDates, setCalSelectedDates] = useState<string[]>([]);
 
     // viewWindowRange contains the inclusive start and inclusive end times of the 
@@ -36,9 +43,13 @@ const Create = () => {
         Intl.DateTimeFormat().resolvedOptions().timeZone
       )
 
-
     const sendApiRequest = () => {
-
+        if (selectingDates) {
+            calendarSelectorRef.current?.fetchSelection();
+        }
+        else {
+            weeklySelectorRef.current?.fetchSelection();
+        }
     }
 
     const updateSelectedDates = (dates: Set<string>): void => {
@@ -84,7 +95,21 @@ const Create = () => {
                     <div className='date-selection-column'>
                         <h2>What dates might work?</h2>
 
-                        <DateSelector></DateSelector>
+                        <div className='dates-select-container'>
+                            <div className='date-selection-toggle-button'>
+                                <div id='toggle-left' onClick={() => {setSelectingDates(true)}}
+                                style={{backgroundColor: selectingDates ? 'purple' : '',
+                                        color: selectingDates ? 'white' : '#272727'}}
+                                >Specific Dates</div>
+                                <div id='toggle-right' onClick={() => {setSelectingDates(false)}}
+                                style={{backgroundColor: selectingDates ? '' : 'purple',
+                                        color: selectingDates ? '#272727' : 'white'}}
+                                >Days of the Week</div>
+                            </div>
+                            <CalendarSelector active={selectingDates} ref={calendarSelectorRef}></CalendarSelector>
+                            <WeeklySelector active={!selectingDates} ref={weeklySelectorRef}></WeeklySelector>
+                            <p>Click and drag over {selectingDates ? "dates" : "days"} you want to select.</p>
+                        </div>
                     </div>
                     <div className='time-selection-column'>
                         <h2>What times might work?</h2>

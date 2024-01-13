@@ -57,12 +57,6 @@ public class EventController {
 	// 	eventId, susId, bleh != null ? bleh : "null query param");
 	// }
 
-	@DeleteMapping("/{eventId}")
-	public void deleteEvent(@PathVariable Long eventId) {
-		// function below not yet implemented
-		eventService.deleteEvent(eventId);
-	}
-
 	@PutMapping("/{eventId}")
 	public void updateEventName(@PathVariable Long eventId,
 								@RequestParam(required = false) String name) {

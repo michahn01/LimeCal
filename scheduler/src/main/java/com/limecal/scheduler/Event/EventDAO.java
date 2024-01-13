@@ -34,8 +34,8 @@ public class EventDAO implements DAO<Event> {
 
     @Override
     public void create(Event event) {
-        String sql = "INSERT INTO event (title, password_hash) VALUES (?, crypt(?, gen_salt('bf')))";
-        jdbcTemplate.update(sql, event.getTitle(), event.getPassword());
+        String sql = "INSERT INTO event (title) VALUES (?)";
+        jdbcTemplate.update(sql, event.getTitle());
     }
 
     @Override
@@ -66,8 +66,8 @@ public class EventDAO implements DAO<Event> {
 
     @Override
     public int update(Event event, int id) {
-        String sql = "UPDATE event SET title = ?, password_hash = crypt(?, gen_salt('bf')) WHERE id = ?";
-        int update = jdbcTemplate.update(sql, event.getTitle(), event.getPassword(), id);
+        String sql = "UPDATE event SET title = ? WHERE id = ?";
+        int update = jdbcTemplate.update(sql, event.getTitle(), id);
         return update;
     }
 

@@ -28,6 +28,13 @@ public class EventController {
         this.eventService = eventService;
     }
 
+	// for Development
+	@GetMapping(path = "")
+	public ResponseEntity<Map<String, Event>> getAllEvents() {
+        return new ResponseEntity<>
+		(eventService.getAllEvents(), HttpStatus.OK);
+	}
+
     // public_id is a UUID corresponding to "public_id"
     // in database table for "event"
 	@GetMapping(path = "/{public_id}")

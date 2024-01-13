@@ -18,6 +18,16 @@ public class EventService {
         this.eventDAO = eventDAO;
     }
 
+    // FOR DEVELOPMENT
+    public Map<String, Event> getAllEvents() {
+        List<Event> events = eventDAO.list();
+        Map<String, Event> return_body = new HashMap<>();
+        for (Event event : events) {
+            return_body.put(event.getId().toString(), event);
+        }
+        return return_body;
+    }
+
     public Map<String, String> getEventByPublicID(String public_id) {
         Optional<Event> event = eventDAO.getByPublicId(public_id);
         if (!event.isPresent()) {

@@ -10,24 +10,20 @@ public class Event {
 
     @NotBlank
     private String title;
-    private String password;
 
     public Event() {
 
     }
 
     @JsonCreator
-    public Event(@JsonProperty(value = "title", required = true) String title, 
-                 @JsonProperty(value = "password", required = false) String password) {
+    public Event(@JsonProperty(value = "title", required = true) String title) {
         this.title = title;
-        this.password = password;
     }
 
-    public Event(String title, String password, Long Id, String public_id) {
+    public Event(String title, Long Id, String public_id) {
         this.id = Id;
         this.public_id = public_id;
         this.title = title;
-        this.password = password;
     }
 
     public Long getId() {
@@ -49,11 +45,5 @@ public class Event {
     }
     public void setTitle(String title) {
         this.title = title;
-    }
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
     }
 }

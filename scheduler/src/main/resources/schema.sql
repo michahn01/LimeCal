@@ -1,8 +1,12 @@
 CREATE TABLE event (
-    title varchar(255) NOT NULL,
     id BIGSERIAL PRIMARY KEY,
+    title varchar(255) NOT NULL,
     public_id UUID DEFAULT uuid_generate_v4(),
     UNIQUE(public_id)
 );
-
--- passwords for event links are *optional*
+CREATE TABLE date (
+    id BIGSERIAL PRIMARY KEY,
+    date_value varchar(10) NOT NULL,
+    event_id BIGINT REFERENCES event(id),
+    UNIQUE(date_value, event_id)
+);

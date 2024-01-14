@@ -4,10 +4,23 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import com.limecal.scheduler.dao.DAO;
 
+import java.util.Map;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import javax.swing.text.html.Option;
 
 @Component
 public class EventDAO implements DAO<Event> {
@@ -29,13 +42,48 @@ public class EventDAO implements DAO<Event> {
     @Override
     public List<Event> list() {
         String sql = "SELECT title, id, public_id FROM event";
-        return jdbcTemplate.query(sql, rowMapper);
+        if (rowMapper != null) {
+            List<Event> events = jdbcTemplate.query(sql, rowMapper);
+            for (Event event : events) {
+                setDatesForEvent(event);
+            }
+            return events;
+        }
+        return new ArrayList<Event>();
+    }
+
+    public Long addEventAndGetId(Event event) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String sql = "INSERT INTO event (title) VALUES (?)";
+
+        jdbcTemplate.update(
+            new PreparedStatementCreator() {
+                @Override
+                public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                    PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                    ps.setString(1, event.getTitle());
+                    return ps;
+                }
+            }, keyHolder);
+
+        Map<String, Object> data = keyHolder.getKeys();
+        Object inserted_id = data.getOrDefault("id", -1);
+        if (inserted_id instanceof Number)
+        return ((Number) inserted_id).longValue();
+        return null;
+        
     }
 
     @Override
     public void create(Event event) {
-        String sql = "INSERT INTO event (title) VALUES (?)";
-        jdbcTemplate.update(sql, event.getTitle());
+        Long event_id = addEventAndGetId(event);
+
+        List<String> dates = event.getDates();
+
+        for (String date : dates) {
+            String query = "INSERT INTO date (date_value, event_id) VALUES (?, ?)";
+            jdbcTemplate.update(query, date, event_id);
+        }
     }
 
     @Override
@@ -43,6 +91,7 @@ public class EventDAO implements DAO<Event> {
         String sql = "SELECT title, id, public_id FROM event WHERE id = ?";
         Event event = null;
         try {
+            if (rowMapper != null)
             event = jdbcTemplate.queryForObject(sql, rowMapper, id);
         }
         catch(DataAccessException ex) {
@@ -55,6 +104,7 @@ public class EventDAO implements DAO<Event> {
         String sql = "SELECT title, id, public_id FROM event WHERE public_id = ?";
         Event event = null;
         try {
+            if (rowMapper != null)
             event = jdbcTemplate.queryForObject(sql, rowMapper, public_id);
         }
         catch(DataAccessException ex) {
@@ -74,5 +124,19 @@ public class EventDAO implements DAO<Event> {
     @Override
     public void delete(int id) {
         jdbcTemplate.update("DELETE FROM event WHERE id = ?", id);
+    }
+
+    RowMapper<String> dateRowMapper = (rs, rowNum) -> {
+        return rs.getString("date_value");
+    };
+    public void setDatesForEvent(Event event) {
+        String query = "SELECT date_value FROM date WHERE event_id = ?";
+        Long event_id = event.getId();
+
+        if (dateRowMapper != null) {
+            List<String> dates = jdbcTemplate.query(query, dateRowMapper, event_id);
+            // System.out.println(dates);
+            event.setDates(dates);
+        }
     }
 }

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.swing.text.html.Option;
 
 @Component
 public class EventDAO implements DAO<Event> {
@@ -36,12 +35,14 @@ public class EventDAO implements DAO<Event> {
         event.setId(rs.getLong("id"));
         event.setPublicId(rs.getString("public_id"));
         event.setTitle(rs.getString("title"));
+        event.setStartTime(rs.getString("start_time"));
+        event.setEndTime(rs.getString("end_time"));
         return event;
     };
 
     @Override
     public List<Event> list() {
-        String sql = "SELECT title, id, public_id FROM event";
+        String sql = "SELECT title, id, public_id, start_time, end_time FROM event";
         if (rowMapper != null) {
             List<Event> events = jdbcTemplate.query(sql, rowMapper);
             for (Event event : events) {
@@ -54,7 +55,7 @@ public class EventDAO implements DAO<Event> {
 
     public Long addEventAndGetId(Event event) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        String sql = "INSERT INTO event (title) VALUES (?)";
+        String sql = "INSERT INTO event (title, start_time, end_time) VALUES (?, ?, ?)";
 
         jdbcTemplate.update(
             new PreparedStatementCreator() {
@@ -62,6 +63,8 @@ public class EventDAO implements DAO<Event> {
                 public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
                     PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                     ps.setString(1, event.getTitle());
+                    ps.setString(2, event.getStartTime());
+                    ps.setString(3, event.getEndTime());
                     return ps;
                 }
             }, keyHolder);
@@ -88,7 +91,7 @@ public class EventDAO implements DAO<Event> {
 
     @Override
     public Optional<Event> get(int id) {
-        String sql = "SELECT title, id, public_id FROM event WHERE id = ?";
+        String sql = "SELECT title, id, public_id, start_time, end_time FROM event WHERE id = ?";
         Event event = null;
         try {
             if (rowMapper != null)
@@ -101,7 +104,7 @@ public class EventDAO implements DAO<Event> {
         return Optional.ofNullable(event);
     }
     public Optional<Event> getByPublicId(String public_id) {
-        String sql = "SELECT title, id, public_id FROM event WHERE public_id = ?";
+        String sql = "SELECT title, id, public_id, start_time, end_time FROM event WHERE public_id = ?";
         Event event = null;
         try {
             if (rowMapper != null)

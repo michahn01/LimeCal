@@ -2,7 +2,9 @@ CREATE TABLE event (
     id BIGSERIAL PRIMARY KEY,
     title varchar(255) NOT NULL,
     public_id UUID DEFAULT uuid_generate_v4(),
-    UNIQUE(public_id)
+    UNIQUE(public_id),
+    start_time varchar(30) NOT NULL,
+    end_time varchar(30) NOT NULL
 );
 CREATE TABLE date (
     id BIGSERIAL PRIMARY KEY,

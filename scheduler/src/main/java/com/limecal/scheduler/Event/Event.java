@@ -14,15 +14,26 @@ public class Event {
     private String title;
 
 
+    // stored in yyyy-mm-dd format
     List<String> dates;
+
+    // stored in ISO string format
+    @NotBlank
+    String start_time;
+    @NotBlank
+    String end_time;
 
     public Event() {
 
     }
 
     @JsonCreator
-    public Event(@JsonProperty(value = "title", required = true) String title) {
+    public Event(@JsonProperty(value = "title", required = true) String title,
+                 @JsonProperty(value = "start_time", required = true) String start_time,
+                 @JsonProperty(value = "end_time", required = true) String end_time) {
         this.title = title;
+        this.start_time = start_time;
+        this.end_time = end_time;
     }
 
     public Event(String title, Long Id, String public_id) {
@@ -57,5 +68,19 @@ public class Event {
     }
     public void setDates(List<String> dates) {
         this.dates = dates;
+    }
+
+    public String getStartTime() {
+        return this.start_time;
+    }
+    public void setStartTime(String start_time) {
+        this.start_time = start_time;
+    }
+
+    public String getEndTime() {
+        return this.end_time;
+    }
+    public void setEndTime(String end_time) {
+        this.end_time = end_time;
     }
 }

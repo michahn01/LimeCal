@@ -42,7 +42,7 @@ const Create = () => {
        Intl.DateTimeFormat().resolvedOptions().timeZone
     )
 
-    const sendApiRequest = (selection: Array<string>) => {
+    const sendApiRequest = (selection: Array<string>, title: string) => {
         let timezone: string;
         if (typeof selectedTimezone === 'string') {
             timezone = selectedTimezone;
@@ -51,23 +51,28 @@ const Create = () => {
             timezone = selectedTimezone.value;
         }
         axiosConfig.post('/event', {
-            "title": eventTitle,
+            "title": title,
             "start_time": viewWindowRange[0],
             "end_time": viewWindowRange[1],
             "dates": selection,
             "timezone": timezone
         })
-        .then(function (response) {
+        .then((response) => {
             console.log(response);
         })
-        .catch(function (error) {
-        console.log(error);
+        .catch(() => {
+            setSubmitMessage("Something went wrong. Please try again.")
         });
     }
 
     const submitForm = () => {
-        if (eventTitle.trimEnd() === "") {
+        const title: string = eventTitle.trimEnd()
+        if (title === "") {
             setSubmitMessage("Event title is required.")
+            return;
+        }
+        if (title.length > 255) {
+            setSubmitMessage("Event title must not exceed 255 characters.");
             return;
         }
         let selection: string[];
@@ -101,7 +106,7 @@ const Create = () => {
             }
         }
         
-        sendApiRequest(selection);
+        sendApiRequest(selection, title);
     }
 
     // callback function for when user uses the time range slider to adjust the

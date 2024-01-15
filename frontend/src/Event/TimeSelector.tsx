@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-import ReactSlider from 'react-slider'; 
-
-
 import './css/TimeSelector.css'
 
 
@@ -200,12 +197,6 @@ const DateColumn: React.FC<DateColumnProps> =
 // ------------------------------ End of DateColumn component
 
 
-// ------------------------------ ** TimeRangeSlider 
-// ------------------------------
-// ------------------------------  
-// ------------------------------ End of TimeRangeSlider
-
-
 
 // ------------------------------ ** TimeSelector 
 // ------------------------------
@@ -213,16 +204,12 @@ const DateColumn: React.FC<DateColumnProps> =
 const TimeSelector = () => {
 
     // viewWindowRange contains the inclusive start and inclusive end times of the 
-    // viewing window of the selection panel. The user can adjust the range of time 
-    // slots using the 'time-range-selector-slider'.
+    // viewing window of the selection panel. 
     const [viewWindowRange, setViewWindowRange] = useState<string[]>(["08:00", "17:00"]);
 
     // 'times' contains the start times of all 15-minute time slots that must be 
     // displayed in selection panel's viewing window.  
     const [times, setTimes] = useState<string[]>([]);
-
-    // labels on the time-range-selector-slider
-    const [sliderLabels, setSliderLabels] = useState(["8 AM", "5 PM"]);
 
     // indicates whether user is dragging (i.e., a selection/de-selection is being made).
     // When user isDragging, they'll be drawing a rectangular box over the panel region.
@@ -292,19 +279,6 @@ const TimeSelector = () => {
         }
     }
 
-    // callback function for when user uses the time range slider to adjust the
-    // time interval to be displayed on the selection panel's viewing window.
-    // thumbValue := values of the thumbs on the slider.
-    const sliderAfterChange = (thumbValue: number[], _: number) => {
-        const newRange: string[] = [`${thumbValue[0]}:00`.padStart(5, '0'), `${thumbValue[1]}:00`.padStart(5, '0')]
-        setViewWindowRange(newRange);
-
-        setTimes(getIntervals(newRange[0], newRange[1]));
-    }
-    const sliderOnChange = (thumbValue: number[], _: number) => {
-        const newRange: string[] = [`${thumbValue[0]}:00`.padStart(5, '0'), `${thumbValue[1]}:00`.padStart(5, '0')]
-        setSliderLabels(newRange);
-    }
     useEffect(() => {
         setViewWindowRange(viewWindowRange);
         setTimes(getIntervals(viewWindowRange[0], viewWindowRange[1]));
@@ -313,30 +287,6 @@ const TimeSelector = () => {
     const [dates] = useState(generateDates());
     
     return (
-        <div>
-        <div className='slider-area'>
-        <div>
-            <div>{convertTimestamp(sliderLabels[0])} - {convertTimestamp(sliderLabels[1])}</div>
-            <ReactSlider
-            className="time-range-selector-slider"
-            thumbClassName="slider-thumb"
-            trackClassName="slider-track"
-            defaultValue={[8, 17]}
-            ariaLabelledby={['first-slider-label', 'second-slider-label']}
-            ariaValuetext={state => `Thumb value ${state.valueNow}`}
-            renderThumb={(props, _) => <div {...props}></div>}
-            pearling
-            minDistance={1}
-            min={0}
-            max={24}
-            onAfterChange={sliderAfterChange}
-            onChange={sliderOnChange}
-            />
-        </div>
-        <p className="slider-instruction">
-            Use the slider to adjust the the viewable area's start and end times.
-        </p>
-        </div>
         <div className='time-selector'>
             <div className='times-labels-container'>
             <div className='header'></div>
@@ -371,7 +321,6 @@ const TimeSelector = () => {
                     ></DateColumn>
                 )
             })}
-        </div>
         </div>
     );
 };

@@ -46,7 +46,7 @@ public class EventService {
         event_info.put("end_time", e.getEndTime());
         event_info.put("timezone", e.getTimezone());
 
-        System.out.println(e.getDates());
+        // System.out.println(e.getDates());
         
         return event_info;
     }

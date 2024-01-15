@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import moment from 'moment-timezone';
 
 import './css/TimeSelector.css'
-import axios from '../axios.ts'
 
 
 // ------------------------------
@@ -81,6 +81,15 @@ const generateDates = (): Date[] => {
     }
     
     return dates;
+}
+
+const convertDatesToTimezone = (dateStrings: string[], timezone: string): Date[] => {
+    return dateStrings.map(dateString => {
+        // Create a moment object in the specified timezone at the start of the day
+        const date = moment.tz(dateString, timezone).startOf('day');
+        // Convert the moment object to a JavaScript Date object
+        return date.toDate();
+    });
 }
 // ------------------------------
 // ------------------------------ ** End of Utility functions
@@ -202,11 +211,12 @@ const DateColumn: React.FC<DateColumnProps> =
 // ------------------------------ ** TimeSelector 
 // ------------------------------
 
-const TimeSelector = () => {
-
-    // viewWindowRange contains the inclusive start and inclusive end times of the 
-    // viewing window of the selection panel. 
-    const [viewWindowRange, setViewWindowRange] = useState<string[]>(["08:00", "17:00"]);
+type TimeSelectorProps = {
+    viewWindowRange: string[];
+    dates: string[];
+    timezone: string;
+};
+const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, timezone }) => {
 
     // 'times' contains the start times of all 15-minute time slots that must be 
     // displayed in selection panel's viewing window.  
@@ -229,6 +239,8 @@ const TimeSelector = () => {
     // changes as the user drags over time slots.
     const [horizontalBound, setHorizontalBound] = useState<Date[]>([new Date(), new Date()]);
     const [verticalBound, setVerticalBound] = useState<string[]>(['', '']);
+
+    const [panelDates, setPanelDates] = useState<Date[]>([]);
 
     // callBack for when mouse is lifted (for when selection has been finished being drawn)
     // primary job is to set isDragging to false.
@@ -281,15 +293,11 @@ const TimeSelector = () => {
     }
 
     useEffect(() => {
-
-
-
-        setViewWindowRange(viewWindowRange);
         setTimes(getIntervals(viewWindowRange[0], viewWindowRange[1]));
+
+        setPanelDates(convertDatesToTimezone(dates, timezone));
     }, [])
-    
-    const [dates] = useState(generateDates());
-    
+        
     return (
         <div className='time-selector'>
             <div className='times-labels-container'>
@@ -308,7 +316,7 @@ const TimeSelector = () => {
                 {convertTimestamp(viewWindowRange[1])}
             </div>
             </div>
-            {dates.map((date, index) => {
+            {panelDates.map((date, index) => {
                 return (
                     <DateColumn
                     key={date.toISOString()}

@@ -63,6 +63,7 @@ public class EventDAO implements DAO<Event> {
         return new ArrayList<Event>();
     }
 
+    @SuppressWarnings("null")
     public void addEventAndGetIDs(Event event) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         String sql = "INSERT INTO event (title, public_id, start_time, end_time, timezone) VALUES (?, ?, ?, ?, ?)";

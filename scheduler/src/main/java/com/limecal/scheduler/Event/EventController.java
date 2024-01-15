@@ -39,6 +39,7 @@ public class EventController {
 		(eventService.getAllEvents(), HttpStatus.OK);
 	}
 
+	
 	@GetMapping(path = "/{public_id}")
 	public ResponseEntity<Map<String, Object>> getEvent(@PathVariable String public_id) {
         return ResponseEntity.ok(eventService.getEventByPublicID(public_id));

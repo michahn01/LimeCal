@@ -1,7 +1,15 @@
 /* basic css that applies to all pages */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
 
 body {
     margin: 0px;
     padding: 0px;
     background-color: #1a1e2b;
+}
+
+.centered-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Poppins';
 }

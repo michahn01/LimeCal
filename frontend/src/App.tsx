@@ -5,6 +5,7 @@ import Navbar from "./Navbar/Navbar.jsx"
 // import Footer from "./Navbar/Footer.jsx"
 import Create from "./CreateEvent/CreateEvent.jsx"
 import Event from "./Event/Event.jsx"
+import NotFound from './NotFound.js'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/events/:eventId" element={<Event />}></Route>
         <Route path="/help"></Route>
         <Route path="/feedback"></Route>
+        <Route path="*" element={<NotFound />}></Route>
       </Routes>
       {/* <Footer></Footer> */}
     </Router>

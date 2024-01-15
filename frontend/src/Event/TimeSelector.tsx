@@ -91,6 +91,40 @@ const convertDatesToTimezone = (dateStrings: string[], timezone: string): Date[]
         return date.toDate();
     });
 }
+const createDate = (dateString: string, timeString: string, timezone: string): Date => {
+    const dateTimeString = `${dateString} ${timeString}`;
+    const momentDate = moment.tz(dateTimeString, "YYYY-MM-DD HH-mm", timezone);
+    // console.log(momentDate.toDate());
+    return momentDate.toDate();
+}
+function daysAndMinutesBetween(date1: Date, date2: Date) {
+    // One day and one minute in milliseconds
+    const oneDay = 24 * 60 * 60 * 1000;
+    const oneMinute = 60 * 1000;
+
+    // Convert both dates to milliseconds
+    const date1Ms = date1.getTime();
+    const date2Ms = date2.getTime();
+
+    // Calculate the difference in milliseconds
+    const differenceMs = Math.abs(date2Ms - date1Ms);
+
+    // Calculate the difference in days and minutes
+    const days = Math.floor(differenceMs / oneDay);
+    const minutes = Math.floor(differenceMs / oneMinute);
+
+    return { days, minutes };
+}
+
+const convertIndexToDate = (start_time: string, range_width: number, index: number): string => {
+    const date: Date = new Date(start_time);
+    const quotient = Math.floor(index / range_width);
+    const remainder = index % range_width;
+    date.setDate(date.getDate() + quotient);
+    date.setMinutes(date.getMinutes() + 15*remainder);
+    return date.toISOString();
+}
+
 // ------------------------------
 // ------------------------------ ** End of Utility functions
 
@@ -242,6 +276,11 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
 
     const [panelDates, setPanelDates] = useState<Date[]>([]);
 
+    const [startTime, setStartTime] = useState<Date>();
+
+    // array of booleans that keeps track of on/off state of every interval
+    const [intervalStates, setIntervalStates] = useState<boolean[]>([]);
+
     // callBack for when mouse is lifted (for when selection has been finished being drawn)
     // primary job is to set isDragging to false.
     const DraggingDone = () => {
@@ -294,7 +333,7 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
 
     useEffect(() => {
         setTimes(getIntervals(viewWindowRange[0], viewWindowRange[1]));
-
+        setStartTime(createDate(dates[0], viewWindowRange[0], timezone));
         setPanelDates(convertDatesToTimezone(dates, timezone));
     }, [])
         

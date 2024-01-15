@@ -63,7 +63,7 @@ public class EventDAO implements DAO<Event> {
         return new ArrayList<Event>();
     }
 
-    public Long addEventAndGetId(Event event) {
+    public void addEventAndGetIDs(Event event) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         String sql = "INSERT INTO event (title, public_id, start_time, end_time, timezone) VALUES (?, ?, ?, ?, ?)";
         String public_id = sqids.encode(Arrays.asList(System.currentTimeMillis(), last_seen_id + 1L));
@@ -86,23 +86,21 @@ public class EventDAO implements DAO<Event> {
         if (inserted_id instanceof Number) {
             Long id = ((Number) inserted_id).longValue();
             last_seen_id = id;
-            // System.out.println(last_seen_id);
-            return id;
-        }
-        
-        return null;
-        
+
+            event.setId(id);
+            event.setPublicId(public_id);
+        }        
     }
 
     @Override
     public void create(Event event) {
-        Long event_id = addEventAndGetId(event);
+        addEventAndGetIDs(event);
 
         List<String> dates = event.getDates();
 
         for (String date : dates) {
             String query = "INSERT INTO date (date_value, event_id) VALUES (?, ?)";
-            jdbcTemplate.update(query, date, event_id);
+            jdbcTemplate.update(query, date, event.getId());
         }
     }
 
@@ -126,6 +124,8 @@ public class EventDAO implements DAO<Event> {
         try {
             if (rowMapper != null)
             event = jdbcTemplate.queryForObject(sql, rowMapper, public_id);
+
+            setDatesForEvent(event);
         }
         catch(DataAccessException ex) {
            // todo: add some logging

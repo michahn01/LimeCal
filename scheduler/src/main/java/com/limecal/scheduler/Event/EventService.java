@@ -28,7 +28,7 @@ public class EventService {
         return return_body;
     }
 
-    public Map<String, String> getEventByPublicID(String public_id) {
+    public Map<String, Object> getEventByPublicID(String public_id) {
         Optional<Event> event = eventDAO.getByPublicId(public_id);
         if (!event.isPresent()) {
             throw new NoSuchElementException("Item with public id: " + public_id + " does not exist.");
@@ -37,11 +37,17 @@ public class EventService {
         // "event_info" contains *all* inforation about an event
         // such as attendees and when they're available, in addition
         // to basic identifying information held in an Event object.
-        Map<String, String> event_info = new HashMap<>();
-        event_info.put("title", event.get().getTitle());
-        event_info.put("public_id", public_id);
-        
+        Map<String, Object> event_info = new HashMap<>();
+        Event e = event.get();
+        event_info.put("title", e.getTitle());
+        event_info.put("public_id", e.getPublicId());
+        event_info.put("dates", e.getDates());
+        event_info.put("start_time", e.getStartTime());
+        event_info.put("end_time", e.getEndTime());
+        event_info.put("timezone", e.getTimezone());
 
+        System.out.println(e.getDates());
+        
         return event_info;
     }
 

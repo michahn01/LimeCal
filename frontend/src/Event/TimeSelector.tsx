@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import './css/TimeSelector.css'
+import axios from '../axios.ts'
 
 
 // ------------------------------
@@ -280,6 +281,9 @@ const TimeSelector = () => {
     }
 
     useEffect(() => {
+
+
+
         setViewWindowRange(viewWindowRange);
         setTimes(getIntervals(viewWindowRange[0], viewWindowRange[1]));
     }, [])

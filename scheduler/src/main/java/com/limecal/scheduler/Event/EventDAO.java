@@ -17,17 +17,26 @@ import com.limecal.scheduler.dao.DAO;
 
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
+import org.sqids.Sqids;
 
 
 @Component
 public class EventDAO implements DAO<Event> {
 
     private JdbcTemplate jdbcTemplate;
+    Sqids sqids;
+    Long last_seen_id;
 
     public EventDAO(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.sqids = Sqids.builder()
+                    .minLength(5)
+                    .build();
+        this.last_seen_id = 0L;
     }
 
     RowMapper<Event> rowMapper = (rs, rowNum) -> {
@@ -56,25 +65,31 @@ public class EventDAO implements DAO<Event> {
 
     public Long addEventAndGetId(Event event) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        String sql = "INSERT INTO event (title, start_time, end_time, timezone) VALUES (?, ?, ?, ?)";
-
+        String sql = "INSERT INTO event (title, public_id, start_time, end_time, timezone) VALUES (?, ?, ?, ?, ?)";
+        String public_id = sqids.encode(Arrays.asList(System.currentTimeMillis(), last_seen_id + 1L));
         jdbcTemplate.update(
             new PreparedStatementCreator() {
                 @Override
                 public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
                     PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                     ps.setString(1, event.getTitle());
-                    ps.setString(2, event.getStartTime());
-                    ps.setString(3, event.getEndTime());
-                    ps.setString(4, event.getTimezone());
+                    ps.setString(2, public_id);
+                    ps.setString(3, event.getStartTime());
+                    ps.setString(4, event.getEndTime());
+                    ps.setString(5, event.getTimezone());
                     return ps;
                 }
             }, keyHolder);
 
         Map<String, Object> data = keyHolder.getKeys();
         Object inserted_id = data.getOrDefault("id", -1);
-        if (inserted_id instanceof Number)
-        return ((Number) inserted_id).longValue();
+        if (inserted_id instanceof Number) {
+            Long id = ((Number) inserted_id).longValue();
+            last_seen_id = id;
+            // System.out.println(last_seen_id);
+            return id;
+        }
+        
         return null;
         
     }

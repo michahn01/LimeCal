@@ -23,6 +23,9 @@ public class Event {
     @NotBlank
     String end_time;
 
+    @NotBlank
+    String timezone;
+
     public Event() {
 
     }
@@ -30,10 +33,12 @@ public class Event {
     @JsonCreator
     public Event(@JsonProperty(value = "title", required = true) String title,
                  @JsonProperty(value = "start_time", required = true) String start_time,
-                 @JsonProperty(value = "end_time", required = true) String end_time) {
+                 @JsonProperty(value = "end_time", required = true) String end_time,
+                 @JsonProperty(value = "timezone", required = true) String timezone) {
         this.title = title;
         this.start_time = start_time;
         this.end_time = end_time;
+        this.timezone = timezone;
     }
 
     public Event(String title, Long Id, String public_id) {
@@ -82,5 +87,12 @@ public class Event {
     }
     public void setEndTime(String end_time) {
         this.end_time = end_time;
+    }
+
+    public String getTimezone() {
+        return this.timezone;
+    }
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
     }
 }

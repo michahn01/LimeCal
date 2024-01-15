@@ -42,7 +42,7 @@ const Create = () => {
        Intl.DateTimeFormat().resolvedOptions().timeZone
     )
 
-    const sendApiRequest = () => {
+    const sendApiRequest = (selection: Array<string>) => {
         let timezone: string;
         if (typeof selectedTimezone === 'string') {
             timezone = selectedTimezone;
@@ -54,7 +54,8 @@ const Create = () => {
             "title": eventTitle,
             "start_time": viewWindowRange[0],
             "end_time": viewWindowRange[1],
-            // "dates": sele
+            "dates": selection,
+            "timezone": timezone
         })
         .then(function (response) {
             console.log(response);
@@ -99,10 +100,8 @@ const Create = () => {
                 return;
             }
         }
-
-        console.log(selection);
         
-        // sendApiRequest();
+        sendApiRequest(selection);
     }
 
     // callback function for when user uses the time range slider to adjust the

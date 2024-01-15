@@ -3,8 +3,9 @@ CREATE TABLE event (
     title varchar(255) NOT NULL,
     public_id UUID DEFAULT uuid_generate_v4(),
     UNIQUE(public_id),
-    start_time varchar(30) NOT NULL,
-    end_time varchar(30) NOT NULL
+    start_time varchar(5) NOT NULL,
+    end_time varchar(5) NOT NULL,
+    timezone varchar(60) NOT NULL
 );
 CREATE TABLE date (
     id BIGSERIAL PRIMARY KEY,

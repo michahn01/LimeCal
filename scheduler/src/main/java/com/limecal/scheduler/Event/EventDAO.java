@@ -37,12 +37,13 @@ public class EventDAO implements DAO<Event> {
         event.setTitle(rs.getString("title"));
         event.setStartTime(rs.getString("start_time"));
         event.setEndTime(rs.getString("end_time"));
+        event.setTimezone(rs.getString("timezone"));
         return event;
     };
 
     @Override
     public List<Event> list() {
-        String sql = "SELECT title, id, public_id, start_time, end_time FROM event";
+        String sql = "SELECT title, id, public_id, start_time, end_time, timezone FROM event";
         if (rowMapper != null) {
             List<Event> events = jdbcTemplate.query(sql, rowMapper);
             for (Event event : events) {
@@ -55,7 +56,7 @@ public class EventDAO implements DAO<Event> {
 
     public Long addEventAndGetId(Event event) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        String sql = "INSERT INTO event (title, start_time, end_time) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO event (title, start_time, end_time, timezone) VALUES (?, ?, ?, ?)";
 
         jdbcTemplate.update(
             new PreparedStatementCreator() {
@@ -65,6 +66,7 @@ public class EventDAO implements DAO<Event> {
                     ps.setString(1, event.getTitle());
                     ps.setString(2, event.getStartTime());
                     ps.setString(3, event.getEndTime());
+                    ps.setString(4, event.getTimezone());
                     return ps;
                 }
             }, keyHolder);
@@ -91,7 +93,7 @@ public class EventDAO implements DAO<Event> {
 
     @Override
     public Optional<Event> get(int id) {
-        String sql = "SELECT title, id, public_id, start_time, end_time FROM event WHERE id = ?";
+        String sql = "SELECT title, id, public_id, start_time, end_time, timezone FROM event WHERE id = ?";
         Event event = null;
         try {
             if (rowMapper != null)
@@ -104,7 +106,7 @@ public class EventDAO implements DAO<Event> {
         return Optional.ofNullable(event);
     }
     public Optional<Event> getByPublicId(String public_id) {
-        String sql = "SELECT title, id, public_id, start_time, end_time FROM event WHERE public_id = ?";
+        String sql = "SELECT title, id, public_id, start_time, end_time, timezone FROM event WHERE public_id = ?";
         Event event = null;
         try {
             if (rowMapper != null)

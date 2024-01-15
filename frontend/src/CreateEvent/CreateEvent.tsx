@@ -1,4 +1,5 @@
 import { useState, useRef } from "react"
+import axiosConfig from "../axios.ts";
 import ReactSlider from 'react-slider'; 
 import TimezoneSelect, { type ITimezone } from 'react-timezone-select'
 
@@ -38,11 +39,29 @@ const Create = () => {
     const [sliderLabels, setSliderLabels] = useState(["8 AM", "5 PM"]);
 
     const [selectedTimezone, setSelectedTimezone] = useState<ITimezone>(
-        Intl.DateTimeFormat().resolvedOptions().timeZone
-      )
+       Intl.DateTimeFormat().resolvedOptions().timeZone
+    )
 
     const sendApiRequest = () => {
-
+        let timezone: string;
+        if (typeof selectedTimezone === 'string') {
+            timezone = selectedTimezone;
+        }
+        else {
+            timezone = selectedTimezone.value;
+        }
+        axiosConfig.post('/event', {
+            "title": eventTitle,
+            "start_time": viewWindowRange[0],
+            "end_time": viewWindowRange[1],
+            // "dates": sele
+        })
+        .then(function (response) {
+            console.log(response);
+        })
+        .catch(function (error) {
+        console.log(error);
+        });
     }
 
     const submitForm = () => {
@@ -52,16 +71,16 @@ const Create = () => {
         }
         let selection: string[];
         if (selectingDates) {
-            const dates: Set<string> | undefined = calendarSelectorRef.current?.fetchSelection();
+            const dates: Array<string> | undefined = calendarSelectorRef.current?.fetchSelection();
             if (dates === undefined) {
                 setSubmitMessage("Something went wrong. Please try again.");
                 return;
             }
-            if (dates.size === 0) {
+            if (dates.length === 0) {
                 setSubmitMessage("Please select at least 1 date.");
                 return;
             }
-            selection = Array.from(dates).sort();
+            selection = dates;
         }
         else {
             const days: Array<boolean> | undefined = weeklySelectorRef.current?.fetchSelection();
@@ -80,8 +99,10 @@ const Create = () => {
                 return;
             }
         }
+
         console.log(selection);
-        sendApiRequest();
+        
+        // sendApiRequest();
     }
 
     // callback function for when user uses the time range slider to adjust the

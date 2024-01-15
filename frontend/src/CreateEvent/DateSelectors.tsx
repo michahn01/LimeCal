@@ -17,13 +17,24 @@ const getMonth = (monthIndex: number): string => {
     "August", "September", "October", "November", "December"][monthIndex];
 }
 
+const toLocalDateFromISOString = (isoString: string): string => {
+    const date = new Date(isoString);
+    console.log(date)
+
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
 const days: string[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 type CalendarSelectorProps = {
     active: boolean;
 };
 interface CalendarSelectorMethods {
-    fetchSelection: () => Set<string>;
+    fetchSelection: () => Array<string>;
 }
 const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorProps>(({active}, ref) => {
 
@@ -53,8 +64,13 @@ const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorPro
 
     const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
 
-    const pushData = (): Set<string> => {
-        return selectedDates;
+    const pushData = (): Array<string> => {
+        const dates: Array<string> = [];
+        for (let date of selectedDates) {
+            dates.push(toLocalDateFromISOString(date));
+        }
+        dates.sort();
+        return dates;
     }
 
     useImperativeHandle(ref, () => ({

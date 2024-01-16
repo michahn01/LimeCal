@@ -125,6 +125,15 @@ const convertIndexToDate = (start_time: string, range_width: number, index: numb
     return date.toISOString();
 }
 
+const convertTimezones = (time: string, sourceTimezone: string, targetTimezone: string): string => {
+    // Parse the time in the source timezone
+    const timeInSourceTimezone = moment.tz(time, "HH:mm", sourceTimezone);
+    // Convert the time to the target timezone
+    const timeInTargetTimezone = timeInSourceTimezone.tz(targetTimezone);
+    // Format the time back to HH:mm format
+    return timeInTargetTimezone.format("HH:mm");
+}
+
 // ------------------------------
 // ------------------------------ ** End of Utility functions
 
@@ -264,19 +273,19 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
     // had clicked on an already-selected time slot, they are de-selecting)
     const [addingTimes, setAddingTimes] = useState<boolean>(false);
 
-    // the Date of the specific cell that the user clicked on to begin dragging a selection region.
-    const [startCellDate, setStartCellDate] = useState<Date>(new Date());
-    // the time of the specific cell that the user clicked on to begin dragging a selection region.
-    const [startCellTime, setStartCellTime] = useState<string>('');
+    // the column of the specific cell that the user clicked on to begin dragging a selection region.
+    const [startCellCol, setStartCellCol] = useState<number>(0);
+    // the row of the specific cell that the user clicked on to begin dragging a selection region.
+    const [startCellRow, setStartCellRow] = useState<number>(0);
 
     // horizontal and vertical bounds of the user's selection region. Constantly 
     // changes as the user drags over time slots.
-    const [horizontalBound, setHorizontalBound] = useState<Date[]>([new Date(), new Date()]);
-    const [verticalBound, setVerticalBound] = useState<string[]>(['', '']);
+    const [horizontalBound, setHorizontalBound] = useState<number[]>([0, 0]);
+    const [verticalBound, setVerticalBound] = useState<number[]>([0, 0]);
 
     const [panelDates, setPanelDates] = useState<Date[]>([]);
 
-    const [startTime, setStartTime] = useState<Date>();
+    const [originalTimezone] = useState<string>(timezone);
 
     // array of booleans that keeps track of on/off state of every interval
     const [intervalStates, setIntervalStates] = useState<boolean[]>([]);
@@ -286,11 +295,19 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
     const DraggingDone = () => {
         if (isDragging) {
             setIsDragging(false);
-
         }
     };
     useEffect(() => {
         if (!isDragging) {
+            const newIntervalStates: boolean[] = intervalStates;
+            for (let i: number = horizontalBound[0]; i <= horizontalBound[1]; ++i) {
+                for (let j: number = verticalBound[0]; j <= verticalBound[1]; ++j) {
+                    const index: number = i * times.length + j;
+                    if (isSelected(index)) {
+                        newIntervalStates[index] = addingTimes;
+                    }
+                }
+            }
             return;
         }
         document.addEventListener('mouseup', DraggingDone);
@@ -301,30 +318,36 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
 
     // function for determining whether a particular time slot is part of the selection box
     // being dragged/drawn by the user.
-    const isSelected = (date: Date, time: string): boolean => {
-        return (horizontalBound[0] <= date && date <= horizontalBound[1] &&
-                verticalBound[0] <= time && time <= verticalBound[1]);
+    const isSelected = (index: number): boolean => {
+        const column: number = Math.floor(index / times.length);
+        const row: number = index % times.length;
+        return (horizontalBound[0] <= column && column <= horizontalBound[1] &&
+                verticalBound[0] <= row && row <= verticalBound[1]);
     }   
 
     // callback function for when user clicks on a particular time slot to being drawing a selection.
     // Function will be called from within a DateColumn component. 
-    const timeSlotClicked = (date: Date, time: string, timeSlotActive: boolean): void => {
+    const timeSlotClicked = (index: number, timeSlotActive: boolean): void => {
+        const column: number = Math.floor(index / times.length);
+        const row: number = index % times.length;
         setIsDragging(true);
         setAddingTimes(!timeSlotActive);
-        setStartCellDate(date);
-        setStartCellTime(time);
-        setHorizontalBound([date, date]);
-        setVerticalBound([time, time]);
+        setStartCellCol(column);
+        setStartCellRow(row);
+        setHorizontalBound([column, column]);
+        setVerticalBound([row, row]);
     }
 
     // callback function for when user hovers over a particular time slot.
     // Function will be called from within a DateColumn component.
-    const timeSlotHovered = (date: Date, time: string): void => {
+    const timeSlotHovered = (index: number): void => {
         if (isDragging) {
-            let min_horizontal_bound: Date = date < startCellDate ? date : startCellDate;
-            let max_horizontal_bound: Date = date > startCellDate ? date : startCellDate;
-            let min_vertical_bound: string = time < startCellTime ? time : startCellTime;
-            let max_vertical_bound: string = time > startCellTime ? time : startCellTime;
+            const column: number = Math.floor(index / times.length);
+            const row: number = index % times.length;
+            let min_horizontal_bound: number = column < startCellCol ? column : startCellCol;
+            let max_horizontal_bound: number = column > startCellCol ? column : startCellCol;
+            let min_vertical_bound: number = row < startCellRow ? row : startCellRow;
+            let max_vertical_bound: number = row > startCellRow ? row : startCellRow;
 
             setVerticalBound([min_vertical_bound, max_vertical_bound]);
             setHorizontalBound([min_horizontal_bound, max_horizontal_bound]);
@@ -332,11 +355,21 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
     }
 
     useEffect(() => {
-        setTimes(getIntervals(viewWindowRange[0], viewWindowRange[1]));
-        setStartTime(createDate(dates[0], viewWindowRange[0], timezone));
         setPanelDates(convertDatesToTimezone(dates, timezone));
-    }, [])
-        
+        const firstInterval: Date = createDate(dates[0], viewWindowRange[0], timezone);
+        const lastInterval: Date = createDate(dates[0], viewWindowRange[1], timezone);
+        const result = daysAndMinutesBetween(firstInterval, lastInterval);
+        const interval_states: boolean[] = Array(result.minutes / 15 * dates.length).fill(false);
+        setIntervalStates(interval_states);
+     }, []);
+
+    useEffect(() => {
+        const newWindowMin: string = convertTimezones(viewWindowRange[0], originalTimezone, timezone);
+        const newWindowMax: string = convertTimezones(viewWindowRange[1], originalTimezone, timezone);
+        setTimes(getIntervals(newWindowMin, newWindowMax));
+    }, [timezone]);
+
+    let curr_index: number = 0;
     return (
         <div className='time-selector'>
             <div className='times-labels-container'>
@@ -352,25 +385,63 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
                 )
             })}
             <div className='time-label'>
-                {convertTimestamp(viewWindowRange[1])}
+                {convertTimestamp(convertTimezones(viewWindowRange[1], originalTimezone, timezone))}
             </div>
             </div>
             {panelDates.map((date, index) => {
+                const col_pos = index === 0 ? ColumnPosition.LeftMost : 
+                (index === dates.length ? ColumnPosition.RightMost : ColumnPosition.Middle);
+                const dateDay = parseDayAndDate(date);
                 return (
-                    <DateColumn
-                    key={date.toISOString()}
-                    col_pos={index === 0 ? ColumnPosition.LeftMost : 
-                             (index === dates.length ? ColumnPosition.RightMost : ColumnPosition.Middle)}
-                    date={date}
-                    times={times}
-                    isDragging={isDragging}
-                    addingTimes={addingTimes}
-                    isSelected={isSelected}
-                    timeSlotHovered={timeSlotHovered}
-                    timeSlotClicked={timeSlotClicked}
-                    horizontalBound={horizontalBound}
-                    ></DateColumn>
+                    <div className='date-column' key={date.toISOString()}>
+                    <div className='date-column-header'
+                         style={{borderLeft: col_pos === ColumnPosition.LeftMost ? '1px solid lightgrey' : '' }}>
+                        <h2>{dateDay[0]}</h2>
+                        <p>{dateDay[1]}</p>
+                    </div>
+                    <div className='date-column-timeslot-container'
+                         style={{borderRight: col_pos !== ColumnPosition.RightMost ? '1px solid whitesmoke' : '' }}>
+                        {times.map((time, index) => {
+                            const intervalIndex = curr_index;
+                            curr_index += 1;
+                            return (
+                                <div 
+                                key={time}
+                                className='selectable-time-slot'
+                                style={{
+                                    borderBottom: (index + 1) % 4 === 0 ? '1px solid whitesmoke' : '',
+        
+                                    // If the timeslot is currently within the user's selection box region, 
+                                    // its color depends solely on whether the user is adding times or deleting times.
+                                    // If not, the color depends on whether it was a previously selected time slot. 
+                                    backgroundColor: ((isSelected(intervalIndex)) ? addingTimes : 
+                                    intervalStates[intervalIndex])  ? '#68b516' : 'lightgrey'
+                                }}
+                                onMouseDown={() => { 
+                                    timeSlotClicked(intervalIndex, intervalStates[intervalIndex]);
+                                }}
+                                onMouseEnter={() => {timeSlotHovered(intervalIndex)}}>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
                 )
+                // return (
+                //     <DateColumn
+                //     key={date.toISOString()}
+                //     col_pos={index === 0 ? ColumnPosition.LeftMost : 
+                //              (index === dates.length ? ColumnPosition.RightMost : ColumnPosition.Middle)}
+                //     date={date}
+                //     times={times}
+                //     isDragging={isDragging}
+                //     addingTimes={addingTimes}
+                //     isSelected={isSelected}
+                //     timeSlotHovered={timeSlotHovered}
+                //     timeSlotClicked={timeSlotClicked}
+                //     horizontalBound={horizontalBound}
+                //     ></DateColumn>
+                // )
             })}
         </div>
     );

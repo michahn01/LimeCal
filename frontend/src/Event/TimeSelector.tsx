@@ -30,13 +30,15 @@ import './css/TimeSelector.css'
 // ------------------------------
 
 // extracts the date and day from a Date obejct
-const parseDayAndDate = (date: Date): string[] => {
+const parseDayAndDate = (date: Date, timezone: string): string[] => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    const day = days[date.getDay()];
-    const month = months[date.getMonth()];
-    const dateNumber = date.getDate();
+    const dateInTimeZone = moment.tz(date, timezone);
+
+    const day = days[dateInTimeZone.day()];
+    const month = months[dateInTimeZone.month()];
+    const dateNumber = dateInTimeZone.date();
 
     return [day, `${month} ${dateNumber}`];
 }
@@ -86,18 +88,6 @@ const getIntervals = (inclusiveStartTime: string, inclusiveEndTime: string): str
     }
     return intervals;
 };
-// a utility function for development and testing (generates a fixed interval of dates)
-const generateDates = (): Date[] => {
-    let dates: Date[] = [];
-    let currentDate = new Date();
-    
-    for (let i = 0; i < 10; i++) {
-        dates.push(new Date(currentDate));
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-    
-    return dates;
-}
 
 const convertDatesToTimezone = (dateStrings: string[], timezone: string): Date[] => {
     return dateStrings.map(dateString => {
@@ -150,120 +140,20 @@ const convertTimezones = (time: string, sourceTimezone: string, targetTimezone: 
     return timeInTargetTimezone.format("HH:mm");
 }
 
+// const convertTimezonesArray = (times_array: Date[], sourceTimezone: string, targetTimezone: string): Date[] => {
+//     const converted_times: Date[] = [];
+//     const timeInSourceTimezone = moment.tz("00:00", "HH:mm", sourceTimezone);
+//     const timeInTargetTimezone = timeInSourceTimezone.tz(targetTimezone);
+//     for (let time of times_array) {
+//         const timeInSourceTimezone = moment.tz(time, "HH:mm", sourceTimezone);
+//         const timeInTargetTimezone = timeInSourceTimezone.tz(targetTimezone);
+//         converted_times.push(timeInTargetTimezone.format("HH:mm"));
+//     }
+//     return converted_times;
+// }
+
 // ------------------------------
 // ------------------------------ ** End of Utility functions
-
-
-
-
-// ------------------------------ ** DateColumn component
-// ------------------------------
-
-// These enums are for deciding border styling on column elements (purely cosmetic purposes)
-enum ColumnPosition {
-    LeftMost, 
-    Middle,
-    RightMost
-}
-type DateColumnProps = {
-
-    col_pos: ColumnPosition; // used for styling borders
-    date: Date; // the particular date represented by each column
-    times: string[]; // a list of all 15-minute intervals to be displayed
-
-    isDragging: boolean; // indicates whether user is dragging (i.e., a selection/de-selection is being made).
-                         // When user isDragging, they'll be drawing a rectangular box over the panel region.
-
-    horizontalBound: Date[]; // the horizontal bound of the user's rectangular selection box.
-                             // horizontalBound[0] := the inclusive start of the box
-                             // horizontalBound[1] := the inclusive end of the box
-
-    addingTimes: boolean; // whether the user is selecting or deselecting time slots (if the user 
-                          // had clicked on an already-selected time slot, they are de-selecting)
-
-    isSelected: (date: Date, time: string) => boolean; // determines whether a given time slot (marked by date & time) 
-                                                       // is part of user's dragged selection box.
-
-
-    // timeSlotHovered: a callback function that runs when a user hovers over a time
-    // slot. Affects states in DateColumn's parent component (i.e., TimeSelector).
-    timeSlotHovered: (date: Date, time: string) => void; 
-
-    // timeSlotClicked: a callback function that runs when a user clicks on a time
-    // slot. Affects states in DateColumn's parent component (i.e., TimeSelector).
-    timeSlotClicked: (date: Date, time: string, timeSlotActive: boolean) => void; 
-}
-
-const DateColumn: React.FC<DateColumnProps> = 
-    ({ col_pos, date, times, isDragging, addingTimes, 
-       isSelected, horizontalBound, timeSlotHovered, timeSlotClicked }) => {
-    
-    // to keep track of all selected time slots in this column. 
-    // note: if a time slot is selected, it will stay selected until user de-selects it. 
-    // So, even if a time slot was not part of user's most recently drawn selection-box, it
-    // will still be part of activeTimeSlots if it was selected before and not yet deselected.
-    const [activeTimeSlots, setActiveTimeSlots] = useState<Set<string>>(new Set());
-
-    // (for the purely cosmetic purpose of displaying the column's label)
-    // dateDay[0] := the day (e.g., "Thu")
-    // dateDay[1] := the date (e.g., "Dec 21")
-    const dateDay = parseDayAndDate(date);
-
-    // the following code runs when isDragging changes. I.e., when user either starts
-    // dragging a selection or when user finishes dragging a selection.
-    useEffect(() => {
-        if (!isDragging && horizontalBound[0] <= date && date <= horizontalBound[1]) {
-            const updatedSlots: Set<string> = new Set(activeTimeSlots);
-            for (const time of times) {
-                if (isSelected(date, time)) {
-                    if (addingTimes) {
-                        updatedSlots.add(time);
-                    }
-                    else {
-                        updatedSlots.delete(time);
-                    }
-                }
-            }
-            setActiveTimeSlots(updatedSlots);
-        }
-    }, [isDragging])
-
-
-    return(
-        <div className='date-column'>
-            <div className='date-column-header'
-                 style={{borderLeft: col_pos === ColumnPosition.LeftMost ? '1px solid lightgrey' : '' }}>
-                <h2>{dateDay[0]}</h2>
-                <p>{dateDay[1]}</p>
-            </div>
-            <div className='date-column-timeslot-container'
-                 style={{borderRight: col_pos !== ColumnPosition.RightMost ? '1px solid whitesmoke' : '' }}>
-                {times.map((time, index) => {
-                    return (
-                        <div 
-                        key={time}
-                        className='selectable-time-slot'
-                        style={{
-                            borderBottom: (index + 1) % 4 === 0 ? '1px solid whitesmoke' : '',
-
-                            // If the timeslot is currently within the user's selection box region, 
-                            // its color depends solely on whether the user is adding times or deleting times.
-                            // If not, the color depends on whether it was a previously selected time slot. 
-                            backgroundColor: ((isSelected(date, time)) ? addingTimes : activeTimeSlots.has(time))  ? '#68b516' : 'lightgrey'
-                        }}
-                        onMouseDown={() => { 
-                            timeSlotClicked(date, time, activeTimeSlots.has(time));
-                        }}
-                        onMouseEnter={() => {timeSlotHovered(date, time)}}>
-                        </div>
-                    )
-                })}
-            </div>
-        </div>
-    )
-}
-// ------------------------------
-// ------------------------------ End of DateColumn component
 
 
 
@@ -275,6 +165,12 @@ type TimeSelectorProps = {
     dates: string[];
     timezone: string;
 };
+// For deciding border styling on column elements (purely cosmetic)
+enum ColumnPosition {
+    LeftMost, 
+    Middle,
+    RightMost
+}
 const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, timezone }) => {
 
     // 'times' contains the start times of all 15-minute time slots that must be 
@@ -371,19 +267,23 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
     }
 
     useEffect(() => {
-        setPanelDates(convertDatesToTimezone(dates, timezone));
         const firstInterval: Date = createDate(dates[0], viewWindowRange[0], timezone);
         const lastInterval: Date = createDate(dates[0], viewWindowRange[1], timezone);
         const result = daysAndMinutesBetween(firstInterval, lastInterval);
         const interval_states: boolean[] = Array(result.minutes / 15 * dates.length).fill(false);
         setIntervalStates(interval_states);
+
+        let arr: Date[] = [];
+        for (let date of dates) {
+            arr.push(createDate(date, viewWindowRange[0], timezone))
+        }
+        setPanelDates(arr);
      }, []);
 
     useEffect(() => {
         const newWindowMin: string = convertTimezones(viewWindowRange[0], originalTimezone, timezone);
         const newWindowMax: string = convertTimezones(viewWindowRange[1], originalTimezone, timezone);
         setTimes(getIntervals(newWindowMin, newWindowMax));
-        // console.log(newWindowMin, newWindowMax);
     }, [timezone]);
 
     let curr_index: number = 0;
@@ -408,7 +308,7 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
             {panelDates.map((date, index) => {
                 const col_pos = index === 0 ? ColumnPosition.LeftMost : 
                 (index === dates.length ? ColumnPosition.RightMost : ColumnPosition.Middle);
-                const dateDay = parseDayAndDate(date);
+                const dateDay = parseDayAndDate(date, timezone);
                 return (
                     <div className='date-column' key={date.toISOString()}>
                     <div className='date-column-header'

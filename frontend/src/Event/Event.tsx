@@ -28,17 +28,9 @@ const Event = () => {
         setTimezone(response.data.timezone);
         setSelectedTimezone(response.data.timezone);
       })
-      .catch((error) => {
+      .catch(() => {
         setPageFound(false);
         setLoading(false);
-        // if (error.response) {
-        //   console.log("Error Data:", error.response.data);
-        //   console.log("Error Status:", error.response.status);
-        // } else if (error.request) {
-        //   console.log("Error Request:", error.request);
-        // } else {
-        //   console.log("Error Message:", error.message);
-        // }
       })
       
     }, [])

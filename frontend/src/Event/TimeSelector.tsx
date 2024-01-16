@@ -62,10 +62,26 @@ const getIntervals = (inclusiveStartTime: string, inclusiveEndTime: string): str
     }
 
     const intervals: string[] = [];
-    const startTime = parseTime(inclusiveStartTime);
-    const endTime = parseTime(inclusiveEndTime);
+    const startTime: Date = parseTime(inclusiveStartTime);
+    const endTime: Date = parseTime(inclusiveEndTime);
 
-    for (let current = new Date(startTime); current < endTime; current = new Date(current.getTime() + 15 * 60000)) {
+    if (endTime > startTime) {
+        for (let current = new Date(startTime); current < endTime; current = new Date(current.getTime() + 15 * 60000)) {
+            intervals.push(current.toTimeString().substring(0, 5));
+        }
+        return intervals;
+    }
+
+    const midNight: Date = new Date(startTime);
+    midNight.setDate(startTime.getDate() + 1);
+    midNight.setHours(0, 0, 0, 0);
+    for (let current = new Date(startTime); current < midNight; current = new Date(current.getTime() + 15 * 60000)) {
+        // console.log("first loop", current.toTimeString().substring(0, 5));
+        intervals.push(current.toTimeString().substring(0, 5));
+    }
+    midNight.setDate(startTime.getDate());
+    for (let current = midNight; current < endTime; current = new Date(current.getTime() + 15 * 60000)) {
+        // console.log(current.toTimeString().substring(0, 5));
         intervals.push(current.toTimeString().substring(0, 5));
     }
     return intervals;
@@ -367,6 +383,7 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
         const newWindowMin: string = convertTimezones(viewWindowRange[0], originalTimezone, timezone);
         const newWindowMax: string = convertTimezones(viewWindowRange[1], originalTimezone, timezone);
         setTimes(getIntervals(newWindowMin, newWindowMax));
+        // console.log(newWindowMin, newWindowMax);
     }, [timezone]);
 
     let curr_index: number = 0;

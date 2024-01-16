@@ -2,6 +2,7 @@ import { useState, useRef } from "react"
 import axiosConfig from "../axios.ts";
 import ReactSlider from 'react-slider'; 
 import TimezoneSelect, { type ITimezone } from 'react-timezone-select'
+import { useNavigate } from 'react-router-dom'
 
 import "./CreateEvent.css"
 import "./DateSelectors.css"
@@ -42,6 +43,8 @@ const Create = () => {
        Intl.DateTimeFormat().resolvedOptions().timeZone
     )
 
+    const navigate = useNavigate();
+
     const sendApiRequest = (selection: Array<string>, title: string) => {
         let timezone: string;
         if (typeof selectedTimezone === 'string') {
@@ -58,7 +61,7 @@ const Create = () => {
             "timezone": timezone
         })
         .then((response) => {
-            console.log(response);
+            navigate(`/events/${response.data.public_id}`)
         })
         .catch(() => {
             setSubmitMessage("Something went wrong. Please try again.")

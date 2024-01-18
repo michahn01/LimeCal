@@ -13,3 +13,9 @@ CREATE TABLE date (
     event_id BIGINT REFERENCES event(id),
     UNIQUE(date_value, event_id)
 );
+CREATE TABLE attendee (
+    id BIGSERIAL PRIMARY KEY,
+    user_name varchar(150) NOT NULL,
+    event_id BIGINT REFERENCES event(id),
+    UNIQUE(user_name, event_id)
+);

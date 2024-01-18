@@ -28,25 +28,22 @@ p {
     align-self: flex-start;
 }
 
-#enter-availability {
-    background-color: #800080; 
-    border: 2px solid transparent;
-    color: white;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    border-radius: 4px; 
-}
 
-#enter-availability:hover {
-    background-color: #680068; 
-    color: #f0f0f0; 
-}
+#enter-availability {
+    padding: 10px 15px;
+    border: 3px solid purple;
+    border-radius: 4px;
+    color: #272727;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 20px;
+    background-color: transparent;
+  }
+  
+  #enter-availability:hover {
+    background-color: purple;
+    color: white;
+  }
 
 .name-form {
     width: 300px;

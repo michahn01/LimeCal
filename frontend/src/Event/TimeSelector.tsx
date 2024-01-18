@@ -44,14 +44,19 @@ const parseDayAndDate = (date: Date, timezone: string): string[] => {
 }
 // converts hh:mm:ss to "X AM" or "Y PM" format
 const convertTimestamp = (timestamp: string): string => {
-    const hoursString = timestamp.split(':')[0];
-    let hours = parseInt(hoursString);
+    // console.log(timestamp);
+    const hr_min = timestamp.split(':');
+    let hours = parseInt(hr_min[0]);
+    let min = parseInt(hr_min[1]);
 
     const amPm = (hours < 12 || hours === 24) ? 'AM' : 'PM';
     hours = hours % 12;
     hours = hours === 0 ? 12 : hours;
 
+    if (min == 0) 
     return `${hours} ${amPm}`;
+
+    return `${hours}:${min} ${amPm}`;
 }
 // given an inclusive start and inclusive end time in hh:mm format, returns an array 
 // containing the *start* times of all 15-minute intervals in that range.
@@ -292,7 +297,7 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
             <div className='times-labels-container'>
             <div className='header'></div>
             {times.map((time, index) => {
-                if ((index + 1) % 4 !== 0) {
+                if (index % 4 !== 0) {
                     return;
                 }
                 return (

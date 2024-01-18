@@ -47,8 +47,9 @@
     background-color: lightgrey;
     transition: background-color 0.2s ease;
 }
-.selectable-time-slot:hover {
+.time-slot-adding:hover {
     background-image: linear-gradient(rgb(0 0 0/20%) 0 0);
+    cursor: pointer;
 }
 
 .times-labels-container {
@@ -65,4 +66,5 @@
     height: 33px;
     white-space: nowrap;
     text-align: right;
+    width: 70px;
 }

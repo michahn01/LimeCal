@@ -94,14 +94,6 @@ const getIntervals = (inclusiveStartTime: string, inclusiveEndTime: string): str
     return intervals;
 };
 
-const convertDatesToTimezone = (dateStrings: string[], timezone: string): Date[] => {
-    return dateStrings.map(dateString => {
-        // Create a moment object in the specified timezone at the start of the day
-        const date = moment.tz(dateString, timezone).startOf('day');
-        // Convert the moment object to a JavaScript Date object
-        return date.toDate();
-    });
-}
 const createDate = (dateString: string, timeString: string, timezone: string): Date => {
     const dateTimeString = `${dateString} ${timeString}`;
     const momentDate = moment.tz(dateTimeString, "YYYY-MM-DD HH-mm", timezone);
@@ -125,15 +117,6 @@ function daysAndMinutesBetween(date1: Date, date2: Date) {
     const minutes = Math.floor(differenceMs / oneMinute);
 
     return { days, minutes };
-}
-
-const convertIndexToDate = (start_time: string, range_width: number, index: number): string => {
-    const date: Date = new Date(start_time);
-    const quotient = Math.floor(index / range_width);
-    const remainder = index % range_width;
-    date.setDate(date.getDate() + quotient);
-    date.setMinutes(date.getMinutes() + 15*remainder);
-    return date.toISOString();
 }
 
 const convertTimezones = (time: string, sourceTimezone: string, targetTimezone: string): string => {
@@ -169,6 +152,8 @@ type TimeSelectorProps = {
     viewWindowRange: string[];
     dates: string[];
     timezone: string;
+    addingAvailability: boolean;
+    userName: string;
 };
 // For deciding border styling on column elements (purely cosmetic)
 enum ColumnPosition {
@@ -176,7 +161,7 @@ enum ColumnPosition {
     Middle,
     RightMost
 }
-const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, timezone }) => {
+const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, timezone, addingAvailability, userName }) => {
 
     // 'times' contains the start times of all 15-minute time slots that must be 
     // displayed in selection panel's viewing window.  
@@ -245,6 +230,8 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
     // callback function for when user clicks on a particular time slot to being drawing a selection.
     // Function will be called from within a DateColumn component. 
     const timeSlotClicked = (index: number, timeSlotActive: boolean): void => {
+        if (!addingAvailability) return; 
+
         const column: number = Math.floor(index / times.length);
         const row: number = index % times.length;
         setIsDragging(true);
@@ -317,7 +304,7 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
                 return (
                     <div className='date-column' key={date.toISOString()}>
                     <div className='date-column-header'
-                         style={{borderLeft: col_pos === ColumnPosition.LeftMost ? '1px solid lightgrey' : '' }}>
+                         style={{borderLeft: col_pos === ColumnPosition.LeftMost ? '1px solid #cfcfcf' : '' }}>
                         <h2>{dateDay[0]}</h2>
                         <p>{dateDay[1]}</p>
                     </div>
@@ -329,7 +316,7 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
                             return (
                                 <div 
                                 key={time}
-                                className='selectable-time-slot'
+                                className={addingAvailability ? 'selectable-time-slot time-slot-adding' : 'selectable-time-slot'}
                                 style={{
                                     borderBottom: (index + 1) % 4 === 0 ? '1px solid whitesmoke' : '',
         
@@ -337,7 +324,7 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
                                     // its color depends solely on whether the user is adding times or deleting times.
                                     // If not, the color depends on whether it was a previously selected time slot. 
                                     backgroundColor: ((isSelected(intervalIndex)) ? addingTimes : 
-                                    intervalStates[intervalIndex])  ? '#68b516' : 'lightgrey'
+                                    intervalStates[intervalIndex])  ? '#68b516' : '#cfcfcf'
                                 }}
                                 onMouseDown={() => { 
                                     timeSlotClicked(intervalIndex, intervalStates[intervalIndex]);
@@ -349,21 +336,6 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
                     </div>
                 </div>
                 )
-                // return (
-                //     <DateColumn
-                //     key={date.toISOString()}
-                //     col_pos={index === 0 ? ColumnPosition.LeftMost : 
-                //              (index === dates.length ? ColumnPosition.RightMost : ColumnPosition.Middle)}
-                //     date={date}
-                //     times={times}
-                //     isDragging={isDragging}
-                //     addingTimes={addingTimes}
-                //     isSelected={isSelected}
-                //     timeSlotHovered={timeSlotHovered}
-                //     timeSlotClicked={timeSlotClicked}
-                //     horizontalBound={horizontalBound}
-                //     ></DateColumn>
-                // )
             })}
         </div>
     );

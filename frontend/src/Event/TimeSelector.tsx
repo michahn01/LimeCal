@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { FC, useState, useEffect } from 'react';
 import moment from 'moment-timezone';
 
 import './css/TimeSelector.css'
@@ -128,17 +128,47 @@ const convertTimezones = (time: string, sourceTimezone: string, targetTimezone: 
     return timeInTargetTimezone.format("HH:mm");
 }
 
-// const convertTimezonesArray = (times_array: Date[], sourceTimezone: string, targetTimezone: string): Date[] => {
-//     const converted_times: Date[] = [];
-//     const timeInSourceTimezone = moment.tz("00:00", "HH:mm", sourceTimezone);
-//     const timeInTargetTimezone = timeInSourceTimezone.tz(targetTimezone);
-//     for (let time of times_array) {
-//         const timeInSourceTimezone = moment.tz(time, "HH:mm", sourceTimezone);
-//         const timeInTargetTimezone = timeInSourceTimezone.tz(targetTimezone);
-//         converted_times.push(timeInTargetTimezone.format("HH:mm"));
-//     }
-//     return converted_times;
-// }
+const convertIndexToDate = (dates: string[], start_time: string, originalTimezone: string, 
+                            range_width: number, index: number): string => {
+    const quotient = Math.floor(index / range_width);
+    const remainder = index % range_width;
+    const date: Date = createDate(dates[quotient], start_time, originalTimezone);
+
+    date.setMinutes(date.getMinutes() + 15*remainder);
+    return date.toISOString();
+}
+
+type GroupedAvailability = {
+    start: string,
+    end: string
+};
+// merges adjacent 15-minute intervals and returns merged groups
+const getMergedIntervals = (intervals: boolean[], dates: string[], start_time: string,
+                            originalTimezone: string, range_width: number): GroupedAvailability[] => {
+    const result: GroupedAvailability[] = [];
+    let curr_start: number = -1; let curr_end: number = -1;
+    for (let index = 0; index < intervals.length; ++index) {
+        if (intervals[index]) {
+            if (curr_start == -1) {
+                curr_start = index;
+            }
+            curr_end = index;
+        }
+        else {
+            if (curr_start == -1) {
+                continue;
+            }
+            result.push({start: convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_start),
+                         end: convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_end)});
+            curr_start = -1;
+        }
+    }
+    if (curr_start != -1) {
+        result.push({start: convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_start),
+            end: convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_end)});    
+    }
+    return result;
+}
 
 // ------------------------------
 // ------------------------------ ** End of Utility functions
@@ -161,7 +191,7 @@ enum ColumnPosition {
     Middle,
     RightMost
 }
-const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, timezone, addingAvailability, userName }) => {
+const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone, addingAvailability, userName }) => {
 
     // 'times' contains the start times of all 15-minute time slots that must be 
     // displayed in selection panel's viewing window.  
@@ -192,6 +222,13 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
     // array of booleans that keeps track of on/off state of every interval
     const [intervalStates, setIntervalStates] = useState<boolean[]>([]);
 
+
+    const makeApiCall = () => {
+        const mergedIntervals: GroupedAvailability[] = getMergedIntervals(intervalStates, 
+            dates, viewWindowRange[0], originalTimezone,
+            times.length);
+    }
+
     // callBack for when mouse is lifted (for when selection has been finished being drawn)
     // primary job is to set isDragging to false.
     const DraggingDone = () => {
@@ -200,7 +237,7 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
         }
     };
     useEffect(() => {
-        if (!isDragging) {
+        if (!isDragging && intervalStates.length > 0) {
             const newIntervalStates: boolean[] = intervalStates;
             for (let i: number = horizontalBound[0]; i <= horizontalBound[1]; ++i) {
                 for (let j: number = verticalBound[0]; j <= verticalBound[1]; ++j) {
@@ -210,6 +247,8 @@ const TimeSelector: React.FC<TimeSelectorProps> =  ({ viewWindowRange, dates, ti
                     }
                 }
             }
+            console.log("MAKING API CALL");
+            makeApiCall();
             return;
         }
         document.addEventListener('mouseup', DraggingDone);

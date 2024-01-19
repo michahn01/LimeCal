@@ -1,4 +1,4 @@
-import TimeSelector from './TimeSelector.jsx';
+import TimeSelector from './TimeSelector.tsx';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import TimezoneSelect, { type ITimezone } from 'react-timezone-select'

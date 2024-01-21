@@ -1,5 +1,6 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useCallback } from 'react';
 import moment from 'moment-timezone';
+import { format, utcToZonedTime } from 'date-fns-tz';
 import axiosConfig from '../axios.ts';
 
 import './css/TimeSelector.css'
@@ -39,9 +40,9 @@ const parseDayAndDate = (date: Date, timezone: string): string[] => {
 
     const day = days[dateInTimeZone.day()];
     const month = months[dateInTimeZone.month()];
-    const dateNumber = dateInTimeZone.date();
+    const datenumber = dateInTimeZone.date();
 
-    return [day, `${month} ${dateNumber}`];
+    return [day, `${month} ${datenumber}`];
 }
 // converts hh:mm:ss to "X AM" or "Y PM" format
 const convertTimestamp = (timestamp: string): string => {
@@ -140,8 +141,7 @@ const convertIndexToDate = (dates: string[], start_time: string, originalTimezon
 }
 
 // merges adjacent 15-minute intervals and returns merged groups
-const getMergedIntervals = (intervals: boolean[], dates: string[], start_time: string,
-                            originalTimezone: string, range_width: number): String[] => {
+const getMergedIntervals = (intervals: number[]): String[] => {
     const result: String[] = [];
     let curr_start: number = -1; let curr_end: number = -1;
     for (let index = 0; index < intervals.length; ++index) {
@@ -155,14 +155,12 @@ const getMergedIntervals = (intervals: boolean[], dates: string[], start_time: s
             if (curr_start == -1) {
                 continue;
             }
-            result.push(convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_start) + "~" +
-                        convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_end));
+            result.push(curr_start.toString() + "~" + curr_end.toString());
             curr_start = -1;
         }
     }
     if (curr_start != -1) {
-        result.push(convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_start) + "~" +
-        convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_end));  
+        result.push(curr_start.toString() + "~" + curr_end.toString());
     }
     return result;
 }
@@ -218,13 +216,37 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
     const [originalTimezone] = useState<string>(timezone);
 
     // array of booleans that keeps track of on/off state of every interval
-    const [intervalStates, setIntervalStates] = useState<boolean[]>([]);
+    const [intervalStates, setIntervalStates] = useState<number[]>([]);
 
 
-    const makeApiCall = () => {
-        const mergedIntervals: String[] = getMergedIntervals(intervalStates, 
-            dates, viewWindowRange[0], originalTimezone,
-            times.length);
+    const clearIntervalStates = () => {
+        if (intervalStates.length > 0) {
+            setIntervalStates(Array(intervalStates.length).fill(0));
+        }
+    }
+
+    const loadIntervalStates = (data: Object) => {
+        console.log("lOADING")
+        const sortedStates = Object.entries(data).sort((a, b) => {
+            return a[0].localeCompare(b[0]);
+        });
+        const loadedStates = Array(intervalStates.length).fill(0);
+        for (let attendee_state of sortedStates) {
+            const attendee_name: string = attendee_state[0];
+            const attendee_intervals: string[] = attendee_state[1];
+            for (let interval of attendee_intervals) {
+                const range: string[] = interval.split("~");
+                for (let i = parseInt(range[0]); i <= parseInt(range[1]); ++i) {
+                    loadedStates[i] += 1;
+                }
+            }
+        }
+        setIntervalStates(loadedStates);
+    }
+
+    const sendTimeUpdatesToApi = () => {
+        const mergedIntervals: String[] = getMergedIntervals(intervalStates);
+        if (!(userName && eventPublicId)) return;
         axiosConfig.put('/attendee', {
             "event_public_id": eventPublicId,
             "username": userName,
@@ -234,9 +256,13 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
             console.log(eventPublicId, userName);
             console.log(response);
         })
-        // .then((response) => {
-        //     navigate(`/events/${response.data.public_id}`)
-        // })
+    }
+
+    const fetchTimesFromApi = () => {
+        axiosConfig.get(`/event/${eventPublicId}`)
+        .then((response) => {
+            loadIntervalStates(response.data.attendees);
+        })
     }
 
     // callBack for when mouse is lifted (for when selection has been finished being drawn)
@@ -248,16 +274,16 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
     };
     useEffect(() => {
         if (!isDragging && intervalStates.length > 0) {
-            const newIntervalStates: boolean[] = intervalStates;
+            const newIntervalStates: number[] = intervalStates;
             for (let i: number = horizontalBound[0]; i <= horizontalBound[1]; ++i) {
                 for (let j: number = verticalBound[0]; j <= verticalBound[1]; ++j) {
                     const index: number = i * times.length + j;
                     if (isSelected(index)) {
-                        newIntervalStates[index] = addingTimes;
+                        newIntervalStates[index] = addingTimes ? 1 : 0;
                     }
                 }
             }
-            makeApiCall();
+            sendTimeUpdatesToApi();
             return;
         }
         document.addEventListener('mouseup', DraggingDone);
@@ -277,7 +303,7 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
 
     // callback function for when user clicks on a particular time slot to being drawing a selection.
     // Function will be called from within a DateColumn component. 
-    const timeSlotClicked = (index: number, timeSlotActive: boolean): void => {
+    const timeSlotClicked = (index: number, timeSlotActive: number): void => {
         if (!addingAvailability) return; 
 
         const column: number = Math.floor(index / times.length);
@@ -310,7 +336,7 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
         const firstInterval: Date = createDate(dates[0], viewWindowRange[0], timezone);
         const lastInterval: Date = createDate(dates[0], viewWindowRange[1], timezone);
         const result = daysAndMinutesBetween(firstInterval, lastInterval);
-        const interval_states: boolean[] = Array(result.minutes / 15 * dates.length).fill(false);
+        const interval_states: number[] = Array(result.minutes / 15 * dates.length).fill(false);
         setIntervalStates(interval_states);
 
         let arr: Date[] = [];
@@ -318,7 +344,14 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
             arr.push(createDate(date, viewWindowRange[0], timezone))
         }
         setPanelDates(arr);
+
      }, []);
+
+     useEffect(() => {
+        if (!addingAvailability && intervalStates.length > 0) {
+            fetchTimesFromApi();
+        }
+     }, [addingAvailability, times])
 
     useEffect(() => {
         const newWindowMin: string = convertTimezones(viewWindowRange[0], originalTimezone, timezone);
@@ -372,7 +405,7 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
                                     // its color depends solely on whether the user is adding times or deleting times.
                                     // If not, the color depends on whether it was a previously selected time slot. 
                                     backgroundColor: ((isSelected(intervalIndex)) ? addingTimes : 
-                                    intervalStates[intervalIndex])  ? '#68b516' : '#cfcfcf'
+                                    intervalStates[intervalIndex])  ? '#68b516' : '#cfcfcf',
                                 }}
                                 onMouseDown={() => { 
                                     timeSlotClicked(intervalIndex, intervalStates[intervalIndex]);

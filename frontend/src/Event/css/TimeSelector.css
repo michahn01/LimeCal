@@ -45,6 +45,8 @@
 .selectable-time-slot {
     height: 8px;
     background-color: lightgrey;
+}
+.time-slot-adding {
     transition: background-color 0.2s ease;
 }
 .time-slot-adding:hover {

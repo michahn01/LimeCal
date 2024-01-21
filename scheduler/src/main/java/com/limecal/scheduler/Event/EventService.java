@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.NoSuchElementException;
 
 import org.springframework.stereotype.Service;
+import com.limecal.scheduler.Attendee.Attendee;
 
 
 
@@ -45,6 +46,13 @@ public class EventService {
         event_info.put("start_time", e.getStartTime());
         event_info.put("end_time", e.getEndTime());
         event_info.put("timezone", e.getTimezone());
+
+        List<Attendee> attendees = eventDAO.getAllAttendees(e.getId());
+        Map<String, List<String>> availabilities = new HashMap<>();
+        for (Attendee a : attendees) {
+            availabilities.put(a.getUsername(), eventDAO.fetchAvailableTimes(a));
+        }
+        event_info.put("attendees", availabilities);
 
         // System.out.println(e.getDates());
         

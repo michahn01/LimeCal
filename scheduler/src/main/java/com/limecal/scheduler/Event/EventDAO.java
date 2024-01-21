@@ -162,8 +162,32 @@ public class EventDAO implements DAO<Event> {
             event.setDates(dates);
         }
     }
+    
+    RowMapper<Attendee> attendeeRowMapper = (rs, rowNum) -> {
+        Attendee attendee = new Attendee();
+        attendee.setId(rs.getLong("id"));
+        attendee.setUsername(rs.getString("username"));
+        return attendee;
+    };
 
-    // public List<Attendee> getAllAttendees() {
+    @SuppressWarnings("null")
+    public List<Attendee> getAllAttendees(Long event_id) {
+        String sql = "SELECT id, username FROM attendee WHERE event_id = ?";
+        List<Attendee> res = jdbcTemplate.query(sql, attendeeRowMapper, event_id);
+        return res;
+    }
 
-    // }
+    RowMapper<String> timeIntervalRowMapper = (rs, rowNum) -> {
+        String time_interval = "";
+        time_interval += (rs.getString("start_time"));
+        time_interval += "~";
+        time_interval += (rs.getString("end_time"));
+        return time_interval;
+    };
+
+    @SuppressWarnings("null")
+    public List<String> fetchAvailableTimes(Attendee attendee) {
+        String sql = "SELECT start_time, end_time FROM time_interval WHERE attendee_id = ?";
+        return jdbcTemplate.query(sql, timeIntervalRowMapper, attendee.getId());
+    }
 }

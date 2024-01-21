@@ -79,7 +79,7 @@ public class AttendeeDAO {
     }
 
     public void deleteTimes(Long attendee_id, List<String> times) {
-        String sql = "DELETE FROM time_interval WHERE attendee_id = ?, start_time = ? AND end_time = ?";
+        String sql = "DELETE FROM time_interval WHERE attendee_id = ? AND start_time = ? AND end_time = ?";
         for (String interval : times) {
             String[] range = interval.split("~");
             jdbcTemplate.update(sql, attendee_id, range[0], range[1]);

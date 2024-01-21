@@ -58,19 +58,4 @@ public class EventController {
 		response.put("timezone", event.getTimezone());
         return ResponseEntity.ok(response);
 	}
-
-	// @DeleteMapping("/something/{eventId}/another/{susId}")
-	// public void paramPassing(@PathVariable String eventId,
-	// 						 @PathVariable String susId,
-	// 						 @RequestParam(required = false) String bleh)  {
-	// 	System.out.printf("Received values are: %s and %s and %s\n", 
-	// 	eventId, susId, bleh != null ? bleh : "null query param");
-	// }
-
-	@PutMapping("/{eventId}")
-	public void updateEventName(@PathVariable Long eventId,
-								@RequestParam(required = false) String name) {
-		// function below not yet implemented
-		eventService.updateEvent(eventId, name);
-	}
 }

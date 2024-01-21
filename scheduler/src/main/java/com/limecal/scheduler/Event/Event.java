@@ -34,11 +34,13 @@ public class Event {
     public Event(@JsonProperty(value = "title", required = true) String title,
                  @JsonProperty(value = "start_time", required = true) String start_time,
                  @JsonProperty(value = "end_time", required = true) String end_time,
-                 @JsonProperty(value = "timezone", required = true) String timezone) {
+                 @JsonProperty(value = "timezone", required = true) String timezone,
+                 @JsonProperty(value = "dates", required = true) List<String> dates) {
         this.title = title;
         this.start_time = start_time;
         this.end_time = end_time;
         this.timezone = timezone;
+        this.dates = dates;
     }
 
     public Event(String title, Long Id, String public_id) {

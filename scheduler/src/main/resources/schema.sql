@@ -15,7 +15,13 @@ CREATE TABLE date (
 );
 CREATE TABLE attendee (
     id BIGSERIAL PRIMARY KEY,
-    user_name varchar(150) NOT NULL,
+    username varchar(150) NOT NULL,
     event_id BIGINT REFERENCES event(id),
-    UNIQUE(user_name, event_id)
+    UNIQUE(username, event_id)
+);
+CREATE TABLE time_interval (
+    id BIGSERIAL PRIMARY KEY,
+    start_time varchar(30) NOT NULL,
+    end_time varchar(30) NOT NULL,
+    attendee_id BIGINT REFERENCES attendee(id)
 );

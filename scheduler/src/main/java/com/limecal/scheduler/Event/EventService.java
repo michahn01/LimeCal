@@ -55,12 +55,4 @@ public class EventService {
         eventDAO.create(event);
     }
 
-    public void deleteEvent(Long eventId) {
-
-    }
-
-    public void updateEvent(Long eventId, String newName) {
-        
-    }
-
 }

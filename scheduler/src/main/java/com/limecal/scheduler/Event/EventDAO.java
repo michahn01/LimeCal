@@ -23,6 +23,8 @@ import java.util.Optional;
 
 import org.sqids.Sqids;
 
+import com.limecal.scheduler.Attendee.Attendee;
+
 
 @Component
 public class EventDAO implements DAO<Event> {
@@ -160,4 +162,8 @@ public class EventDAO implements DAO<Event> {
             event.setDates(dates);
         }
     }
+
+    // public List<Attendee> getAllAttendees() {
+
+    // }
 }

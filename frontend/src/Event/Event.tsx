@@ -42,6 +42,13 @@ const Event = () => {
       
     }, [])
 
+    const makeApiCall = () => {
+      axiosConfig.post('/attendee', {
+        "event_public_id": eventId,
+        "username": userName,
+    })
+    }
+
     if (loading) {
       return (
         <div></div>
@@ -73,7 +80,10 @@ const Event = () => {
 
                                 <div className="button-group">
                                     <button type="button" 
-                                    onClick={() => setAddingAvailability(addingMode.enteringTimes)}
+                                    onClick={() => {
+                                      setAddingAvailability(addingMode.enteringTimes);
+                                      makeApiCall();
+                                    }}
                                     className="name-field-button continue">
                                     Continue</button>
                                     <button type="button" 
@@ -132,7 +142,8 @@ const Event = () => {
                           dates={dates} 
                           timezone={timezone}
                           addingAvailability={addingAvailability === addingMode.enteringTimes}
-                          userName={userName}>
+                          userName={userName}
+                          eventPublicId={eventId ? eventId : ""}>
             </TimeSelector>
           </div>
 

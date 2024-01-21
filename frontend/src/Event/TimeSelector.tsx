@@ -1,5 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import moment from 'moment-timezone';
+import axiosConfig from '../axios.ts';
 
 import './css/TimeSelector.css'
 
@@ -138,14 +139,10 @@ const convertIndexToDate = (dates: string[], start_time: string, originalTimezon
     return date.toISOString();
 }
 
-type GroupedAvailability = {
-    start: string,
-    end: string
-};
 // merges adjacent 15-minute intervals and returns merged groups
 const getMergedIntervals = (intervals: boolean[], dates: string[], start_time: string,
-                            originalTimezone: string, range_width: number): GroupedAvailability[] => {
-    const result: GroupedAvailability[] = [];
+                            originalTimezone: string, range_width: number): String[] => {
+    const result: String[] = [];
     let curr_start: number = -1; let curr_end: number = -1;
     for (let index = 0; index < intervals.length; ++index) {
         if (intervals[index]) {
@@ -158,14 +155,14 @@ const getMergedIntervals = (intervals: boolean[], dates: string[], start_time: s
             if (curr_start == -1) {
                 continue;
             }
-            result.push({start: convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_start),
-                         end: convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_end)});
+            result.push(convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_start) + "~" +
+                        convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_end));
             curr_start = -1;
         }
     }
     if (curr_start != -1) {
-        result.push({start: convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_start),
-            end: convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_end)});    
+        result.push(convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_start) + "~" +
+        convertIndexToDate(dates, start_time, originalTimezone, range_width, curr_end));  
     }
     return result;
 }
@@ -184,6 +181,7 @@ type TimeSelectorProps = {
     timezone: string;
     addingAvailability: boolean;
     userName: string;
+    eventPublicId: string;
 };
 // For deciding border styling on column elements (purely cosmetic)
 enum ColumnPosition {
@@ -191,7 +189,7 @@ enum ColumnPosition {
     Middle,
     RightMost
 }
-const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone, addingAvailability, userName }) => {
+const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone, addingAvailability, userName, eventPublicId }) => {
 
     // 'times' contains the start times of all 15-minute time slots that must be 
     // displayed in selection panel's viewing window.  
@@ -224,9 +222,21 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
 
 
     const makeApiCall = () => {
-        const mergedIntervals: GroupedAvailability[] = getMergedIntervals(intervalStates, 
+        const mergedIntervals: String[] = getMergedIntervals(intervalStates, 
             dates, viewWindowRange[0], originalTimezone,
             times.length);
+        axiosConfig.put('/attendee', {
+            "event_public_id": eventPublicId,
+            "username": userName,
+            "available_times": mergedIntervals
+        })
+        .catch((response) => {
+            console.log(eventPublicId, userName);
+            console.log(response);
+        })
+        // .then((response) => {
+        //     navigate(`/events/${response.data.public_id}`)
+        // })
     }
 
     // callBack for when mouse is lifted (for when selection has been finished being drawn)
@@ -247,7 +257,6 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
                     }
                 }
             }
-            console.log("MAKING API CALL");
             makeApiCall();
             return;
         }

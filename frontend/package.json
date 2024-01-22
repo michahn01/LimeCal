@@ -13,7 +13,6 @@
     "@babel/runtime": "^7.23.6",
     "@types/react-slider": "^1.3.6",
     "axios": "^1.6.5",
-    "date-fns-tz": "^2.0.0",
     "moment-timezone": "^0.5.44",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

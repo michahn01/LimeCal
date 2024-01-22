@@ -1,6 +1,5 @@
 import { FC, useState, useEffect, useCallback } from 'react';
 import moment from 'moment-timezone';
-import { format, utcToZonedTime } from 'date-fns-tz';
 import axiosConfig from '../axios.ts';
 
 import './css/TimeSelector.css'

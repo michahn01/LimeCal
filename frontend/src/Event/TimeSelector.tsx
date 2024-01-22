@@ -141,8 +141,8 @@ const convertIndexToDate = (dates: string[], start_time: string, originalTimezon
 }
 
 // merges adjacent 15-minute intervals and returns merged groups
-const getMergedIntervals = (intervals: number[]): String[] => {
-    const result: String[] = [];
+const getMergedIntervals = (intervals: number[]): string[] => {
+    const result: string[] = [];
     let curr_start: number = -1; let curr_end: number = -1;
     for (let index = 0; index < intervals.length; ++index) {
         if (intervals[index]) {
@@ -163,6 +163,21 @@ const getMergedIntervals = (intervals: number[]): String[] => {
         result.push(curr_start.toString() + "~" + curr_end.toString());
     }
     return result;
+}
+
+// requirement: 0 <= fraction <= 1
+const generateGreenShade = (fraction: number): string => {
+    // Define the start (light gray #d3d3d3) and end (green #339900) colors in RGB
+    const startColor = { r: 211, g: 211, b: 211 };
+    const endColor = { r: 51, g: 153, b: 0 };
+
+    // Interpolate between the start and end colors
+    const r = Math.round(startColor.r + (endColor.r - startColor.r) * fraction);
+    const g = Math.round(startColor.g + (endColor.g - startColor.g) * fraction);
+    const b = Math.round(startColor.b + (endColor.b - startColor.b) * fraction);
+
+    // Return the RGB color as a string
+    return `rgb(${r}, ${g}, ${b})`;
 }
 
 // ------------------------------
@@ -215,6 +230,8 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
 
     const [originalTimezone] = useState<string>(timezone);
 
+    const [numAttendees, setNumAttendees] = useState<number>(0);
+
     // array of booleans that keeps track of on/off state of every interval
     const [intervalStates, setIntervalStates] = useState<number[]>([]);
 
@@ -226,13 +243,14 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
     }
 
     const loadIntervalStates = (data: Object) => {
-        console.log("lOADING")
         const sortedStates = Object.entries(data).sort((a, b) => {
             return a[0].localeCompare(b[0]);
         });
         const loadedStates = Array(intervalStates.length).fill(0);
+        let num: number = 0;
         for (let attendee_state of sortedStates) {
             const attendee_name: string = attendee_state[0];
+            num += 1;
             const attendee_intervals: string[] = attendee_state[1];
             for (let interval of attendee_intervals) {
                 const range: string[] = interval.split("~");
@@ -241,6 +259,7 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
                 }
             }
         }
+        setNumAttendees(num);
         setIntervalStates(loadedStates);
     }
 
@@ -351,6 +370,11 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
         if (!addingAvailability && intervalStates.length > 0) {
             fetchTimesFromApi();
         }
+        else {
+            clearIntervalStates();
+        }
+        setHorizontalBound([-1, -1]);
+        setVerticalBound([-1, -1]);
      }, [addingAvailability, times])
 
     useEffect(() => {
@@ -403,9 +427,10 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
         
                                     // If the timeslot is currently within the user's selection box region, 
                                     // its color depends solely on whether the user is adding times or deleting times.
-                                    // If not, the color depends on whether it was a previously selected time slot. 
-                                    backgroundColor: ((isSelected(intervalIndex)) ? addingTimes : 
-                                    intervalStates[intervalIndex])  ? '#68b516' : '#cfcfcf',
+                                    // If not, the color depends on the fraction of users who are available at that slot. 
+
+                                    backgroundColor: generateGreenShade((isSelected(intervalIndex)) ? 
+                                    (addingTimes ? 1 : 0) : (intervalStates[intervalIndex] / numAttendees))
                                 }}
                                 onMouseDown={() => { 
                                     timeSlotClicked(intervalIndex, intervalStates[intervalIndex]);

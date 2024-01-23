@@ -120,6 +120,7 @@ p {
 
 .availability-table {
     margin-top: 20px;
+    margin-bottom: 25px;
     display: flex;
     flex-direction: column;
     

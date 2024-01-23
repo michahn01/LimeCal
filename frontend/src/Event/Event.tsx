@@ -79,6 +79,8 @@ const Event = () => {
     const [userName, setUserName] = useState<string>("");
 
     const [copyButtonText, setCopyButtonText] = useState<string>("Copy Link");
+    const [nameFormInstruction, setNameFormInstruction] = 
+    useState<string>("If you're a returning user, sign in with the same name.");
     
 
     const availabilityTable = useRef<AvailabilityTableMethods>(null);
@@ -115,6 +117,7 @@ const Event = () => {
         </div>
       )
     }
+    
     return (
         <div className='page-body'>
             <div className="control-panel">
@@ -132,13 +135,28 @@ const Event = () => {
                                 <div className="button-group">
                                     <button type="button" 
                                     onClick={() => {
-                                      setAddingAvailability(addingMode.enteringTimes);
+                                      if (userName.length == 0) {
+                                        setNameFormInstruction("Please enter a name.");
+                                        setTimeout(() => {
+                                          setNameFormInstruction("If you're a returning user, sign in with the same name.");
+                                        }, 2500);
+                                      }
+                                      else if (userName.length > 150) {
+                                        setNameFormInstruction("Name must not exceed 150 characters.");
+                                        setTimeout(() => {
+                                          setNameFormInstruction("If you're a returning user, sign in with the same name.");
+                                        }, 2500);
+                                      }
+                                      else {
+                                        setAddingAvailability(addingMode.enteringTimes);
+                                      }
                                     }}
                                     className="name-field-button continue">
                                     Continue</button>
                                     <button type="button" 
                                     onClick={() => {
                                       setAddingAvailability(addingMode.view);
+                                      setNameFormInstruction("If you're a returning user, sign in with the same name.");
                                     }}
                                     className="name-field-button cancel">
                                     Cancel</button>
@@ -173,12 +191,13 @@ const Event = () => {
                       </div>
                     )
             }
-            <p>If you're a returning user, sign in with the same name.</p>
+            <p>{nameFormInstruction}</p>
+            <div style={{opacity: addingAvailability === addingMode.enteringTimes ? '0.2' : '1'}}>
+            
             <AvailabilityTable ref={availabilityTable}></AvailabilityTable>
-          </div>
-          <div className='time-selector-group'>
-            <div className='time-selector-top-header'> 
-              <TimezoneSelect 
+
+            <p>Display timezones in:</p>
+            <TimezoneSelect 
                 value={selectedTimezone}
                 onChange={(tz: any) => {setSelectedTimezone(tz); setTimezone(tz.value);}}
                 classNamePrefix="selector"
@@ -194,11 +213,11 @@ const Event = () => {
                 />
             </div>
 
-            <div className='time-selector-top-header'> 
-            {(addingAvailability === addingMode.enteringTimes) ? 
-            (<div>Entering {userName}'s availability:</div>) :
-            (<div>Everyone's availability:</div>)}
-            </div>
+          </div>
+          <div className='time-selector-group'>
+            {/* <div className='time-selector-top-header'> 
+
+            </div> */}
 
             <TimeSelector viewWindowRange={viewWindowRange} 
                           dates={dates} 

@@ -217,18 +217,12 @@ const TimeSelector: FC<TimeSelectorProps> =
     const [originalTimezone] = useState<string>(timezone);
 
     const [numAttendees, setNumAttendees] = useState<number>(0);
+    const [lengthColorKey, setLengthColorKey] = useState<number>(0);
 
     // array of booleans that keeps track of on/off state of every interval
     const [intervalStates, setIntervalStates] = useState<number[]>([]);
 
     const [userTimesMap, setUserTimesMap] = useState<Map<string, Set<number>>>(new Map<string, Set<number>>());
-
-
-    const clearIntervalStates = () => {
-        if (intervalStates.length > 0) {
-            setIntervalStates(Array(intervalStates.length).fill(0));
-        }
-    }
 
     const loadIntervalStates = (data: Object) => {
         const sortedStates = Object.entries(data).sort((a, b) => {
@@ -252,6 +246,7 @@ const TimeSelector: FC<TimeSelectorProps> =
             }
         }
         setNumAttendees(num);
+        setLengthColorKey(num);
         setIntervalStates(loadedStates);
         setUserTimesMap(availabilityMap);
         availabilityTable.current?.setNumUsers(num);
@@ -414,8 +409,48 @@ const TimeSelector: FC<TimeSelectorProps> =
         setTimes(getIntervals(newWindowMin, newWindowMax));
     }, [timezone]);
 
+    const smallRectWidth = 300 / numAttendees;
+
+    // Create an array of JSX elements for small rectangles
+    const colorLegendKeys: string[] = [];
+    for (let i = 0; i <= lengthColorKey; i++) {
+      colorLegendKeys.push(
+        generateGreenShade(i / lengthColorKey)
+      );
+    }
+
     let curr_index: number = 0;
     return (
+        <div>
+            
+            <div className='colors-legend-container'>
+                <div className='colors-legend-label'><sup>0</sup>/<sub>{lengthColorKey}</sub></div>
+                <div className='colors-legend'>
+                {colorLegendKeys.map((shade: string) => {
+                    return (
+                        <div 
+                        key={shade} 
+                        style={{
+                          width: `${smallRectWidth}px`, 
+                          height: '50px', 
+                          backgroundColor: `${shade}`
+                        }} 
+                      />
+                    )
+                })}
+                </div>
+                <div className='colors-legend-label'><sup>{lengthColorKey}</sup>/<sub>{lengthColorKey}</sub></div>
+            </div>
+
+            
+
+            <div className='time-selector-header-label'>
+            {(addingAvailability) ? 
+            `Entering ${userName}'s availability:` :
+            `Everyone's availability:`}
+            </div>
+
+
         <div className='time-selector'>
             <div className='times-labels-container'>
             <div className='header'></div>
@@ -475,6 +510,7 @@ const TimeSelector: FC<TimeSelectorProps> =
                 </div>
                 )
             })}
+        </div>
         </div>
     );
 };

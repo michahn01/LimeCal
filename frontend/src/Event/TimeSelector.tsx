@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useCallback } from 'react';
+import { FC, useState, useEffect } from 'react';
 import moment from 'moment-timezone';
 import axiosConfig from '../axios.ts';
 
@@ -129,16 +129,6 @@ const convertTimezones = (time: string, sourceTimezone: string, targetTimezone: 
     return timeInTargetTimezone.format("HH:mm");
 }
 
-const convertIndexToDate = (dates: string[], start_time: string, originalTimezone: string, 
-                            range_width: number, index: number): string => {
-    const quotient = Math.floor(index / range_width);
-    const remainder = index % range_width;
-    const date: Date = createDate(dates[quotient], start_time, originalTimezone);
-
-    date.setMinutes(date.getMinutes() + 15*remainder);
-    return date.toISOString();
-}
-
 // merges adjacent 15-minute intervals and returns merged groups
 const getMergedIntervals = (intervals: number[]): string[] => {
     const result: string[] = [];
@@ -167,7 +157,7 @@ const getMergedIntervals = (intervals: number[]): string[] => {
 // requirement: 0 <= fraction <= 1
 const generateGreenShade = (fraction: number): string => {
     // Define the start (light gray #d3d3d3) and end (green #339900) colors in RGB
-    const startColor = { r: 211, g: 211, b: 211 };
+    const startColor = { r: 236, g: 236, b: 236 };
     const endColor = { r: 51, g: 153, b: 0 };
 
     // Interpolate between the start and end colors
@@ -283,6 +273,25 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
         })
     }
 
+    const fetchIndividualFromApi = () => {
+        axiosConfig.post('/attendee', {
+            "event_public_id": eventPublicId,
+            "username": userName,
+        })
+        .then((response) => {
+            const attendee_intervals: string[] = response.data.available_times;
+            const loadedStates = Array(intervalStates.length).fill(0);
+            for (let interval of attendee_intervals) {
+                const range: string[] = interval.split("~");
+                for (let i = parseInt(range[0]); i <= parseInt(range[1]); ++i) {
+                    loadedStates[i] = 1;
+                }
+            }
+            setIntervalStates(loadedStates);
+            setNumAttendees(1);
+        })
+    }
+
     // callBack for when mouse is lifted (for when selection has been finished being drawn)
     // primary job is to set isDragging to false.
     const DraggingDone = () => {
@@ -370,7 +379,7 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
             fetchTimesFromApi();
         }
         else {
-            clearIntervalStates();
+            fetchIndividualFromApi();
         }
         setHorizontalBound([-1, -1]);
         setVerticalBound([-1, -1]);
@@ -403,26 +412,25 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
             </div>
             {panelDates.map((date, index) => {
                 const col_pos = index === 0 ? ColumnPosition.LeftMost : 
-                (index === dates.length ? ColumnPosition.RightMost : ColumnPosition.Middle);
+                (index === (dates.length - 1) ? ColumnPosition.RightMost : ColumnPosition.Middle);
                 const dateDay = parseDayAndDate(date, timezone);
                 return (
-                    <div className='date-column' key={date.toISOString()}>
-                    <div className='date-column-header'
-                         style={{borderLeft: col_pos === ColumnPosition.LeftMost ? '1px solid #cfcfcf' : '' }}>
+                    <div className='date-column' key={date.toISOString()}
+                    style={{borderRight: col_pos === ColumnPosition.RightMost ? '1px solid #cfcfcf' : '' }}>
+                    <div className='date-column-header'>
                         <h2>{dateDay[0]}</h2>
                         <p>{dateDay[1]}</p>
                     </div>
-                    <div className='date-column-timeslot-container'
-                         style={{borderRight: col_pos !== ColumnPosition.RightMost ? '1px solid whitesmoke' : '' }}>
+                    <div className='date-column-timeslot-container'>
                         {times.map((time, index) => {
                             const intervalIndex = curr_index;
                             curr_index += 1;
                             return (
-                                <div 
+                                <div
                                 key={time}
                                 className={addingAvailability ? 'selectable-time-slot time-slot-adding' : 'selectable-time-slot'}
                                 style={{
-                                    borderBottom: (index + 1) % 4 === 0 ? '1px solid whitesmoke' : '',
+                                    borderBottom: (index + 1) % 4 === 0 ? '1px solid #cfcfcf' : '',
         
                                     // If the timeslot is currently within the user's selection box region, 
                                     // its color depends solely on whether the user is adding times or deleting times.

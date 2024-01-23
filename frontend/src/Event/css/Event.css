@@ -4,14 +4,14 @@
     padding: 2%;
     box-sizing:border-box;
     width: 100%;
-    background-color: whitesmoke;
+    background-color: white;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 8em;
     justify-content: center;
     align-items: flex-start;
     font-family: 'Nunito Sans', sans-serif;
+    min-height: 650px;
 }
 
 p {
@@ -29,24 +29,41 @@ p {
 }
 
 
-#enter-availability {
+.control-panel-button {
     padding: 10px 15px;
-    border: 3px solid purple;
+    border: 1px solid #cccccc;
     border-radius: 4px;
-    color: #272727;
+    color: #333333;
     cursor: pointer;
-    transition: background-color 0.3s;
-    font-size: 20px;
-    background-color: transparent;
-  }
+    transition: border 0.15s;
+    font-size: 17px;
+    background-color: #ffffff;
+}
+
+.buttons-row {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    flex-wrap: wrap;
+}
   
-  #enter-availability:hover {
-    background-color: purple;
-    color: white;
-  }
+.control-panel-button:hover {
+    border: 1px solid #a9a9a9;
+}
+
+.control-panel {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+}
+
+.control-panel p {
+    color: grey;
+    font-size: 15px;
+    margin-left: 2px;
+}
 
 .name-form {
-    width: 300px;
     margin: auto;
     padding: 15px;
     border: 1px solid #ddd;
@@ -99,4 +116,37 @@ p {
 .time-selector-top-header {
     margin-left: 80px;
     margin-bottom: 20px;
+}
+
+.availability-table {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    
+    background-color: rgb(236, 236, 236);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table-body {
+    min-height: 200px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.column-entry {
+    width: 50%;
+    box-sizing: border-box;
+    padding: 7px 15px;
+}
+
+.table-header {
+    display: flex;
+    flex-direction: row;
+    border-collapse: collapse;
+    text-align: left;
+    color: #ffffff;
+    background-color: #ab2e2e;
+    box-sizing: border-box;
 }

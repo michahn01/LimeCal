@@ -42,13 +42,6 @@ const Event = () => {
       
     }, [])
 
-    const makeApiCall = () => {
-      axiosConfig.post('/attendee', {
-        "event_public_id": eventId,
-        "username": userName,
-    })
-    }
-
     if (loading) {
       return (
         <div></div>
@@ -66,7 +59,7 @@ const Event = () => {
     }
     return (
         <div className='page-body'>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '30px'}}>
+            <div className="control-panel">
             {
                 (addingAvailability === addingMode.enteringName) ?
                     (
@@ -82,7 +75,6 @@ const Event = () => {
                                     <button type="button" 
                                     onClick={() => {
                                       setAddingAvailability(addingMode.enteringTimes);
-                                      makeApiCall();
                                     }}
                                     className="name-field-button continue">
                                     Continue</button>
@@ -98,8 +90,9 @@ const Event = () => {
                     )
                 :
                     (
+                      <div className='buttons-row'>
                         <button 
-                            id='enter-availability' 
+                            className='control-panel-button' 
                             onClick={() => {
                                       if (addingAvailability === addingMode.view)
                                       setAddingAvailability(addingMode.enteringName);
@@ -109,10 +102,23 @@ const Event = () => {
                         >
                             {addingAvailability === addingMode.view ? "Enter Availability" : "Done"}
                         </button>
+                        <button className='control-panel-button' 
+                        onClick={() => {navigator.clipboard.writeText(window.location.href);}}>
+                          Copy Link
+                        </button>
+                      </div>
                     )
             }
+            <p>If you're a returning user, sign in with the same name.</p>
+            <div className='availability-table'>
+              <div className='table-header'>
+                <div className='column-entry'>Available</div>
+                <div className='column-entry'>Unavailable</div>
+              </div>
+              <div className='table-body'>
 
-
+              </div>
+            </div>
           </div>
           <div className='time-selector-group'>
             <div className='time-selector-top-header'> 

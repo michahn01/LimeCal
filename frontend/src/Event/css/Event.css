@@ -136,12 +136,21 @@ p {
 
     display: flex;
     flex-direction: row;
+    justify-content: center;
+
+}
+
+.table-body h3 {
+    text-align: center;
+    margin: 30px;
+    box-sizing: border-box;
 }
 
 .column-entry {
     width: 50%;
     box-sizing: border-box;
     padding: 7px 15px;
+    text-align: center;
 }
 
 .body-column {
@@ -150,6 +159,11 @@ p {
     box-sizing: border-box;
     padding: 5px 14px;
     word-wrap: break-word;
+    text-align: center;
+}
+
+.body-column p {
+    font-size: 19px;
 }
 .left-column {
     border-right: 2px dashed #c2c2c2;

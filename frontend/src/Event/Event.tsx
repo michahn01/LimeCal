@@ -11,10 +11,12 @@ import "./css/Event.css"
 type AvailabilityTableMethods = {
   setAvailableUsers: (times: string[]) => void;
   setUnavailableUsers: (times: string[]) => void;
+  setNumUsers: (num: number) => void;
 };
 const AvailabilityTable = forwardRef<AvailabilityTableMethods, {}>((_, ref) => {
   const [available, setAvailable] = useState<string[]>([]);
   const [unavailable, setUnavailable] = useState<string[]>([]);
+  const [numUsers, setNumUsers] = useState<number>(0);
 
   useImperativeHandle(ref, () => ({
     setAvailableUsers: (users: string[]) => {
@@ -22,7 +24,10 @@ const AvailabilityTable = forwardRef<AvailabilityTableMethods, {}>((_, ref) => {
     },
     setUnavailableUsers: (users: string[]) => {
       setUnavailable(users);
-  }
+    },
+    setNumUsers: (num: number) => {
+      setNumUsers(num);
+    }
 }));
   return (
     <div className='availability-table'>
@@ -30,7 +35,15 @@ const AvailabilityTable = forwardRef<AvailabilityTableMethods, {}>((_, ref) => {
       <div className='column-entry'>Available</div>
       <div className='column-entry'>Unavailable</div>
     </div>
-    <div className='table-body'>
+      {
+        (available.length == 0 && unavailable.length == 0) ? 
+        (<div className='table-body'>
+          {
+            (numUsers == 0) ? (<h3>No attendees have responded yet.</h3>) :
+            (<h3>Hover over calendar to see who's available.</h3>)
+          }
+        </div>) :
+        (<div className='table-body'>
       <div className='body-column left-column'>
         {available.map((user: string) => {
           return <p key={user} >{user}</p>
@@ -41,7 +54,9 @@ const AvailabilityTable = forwardRef<AvailabilityTableMethods, {}>((_, ref) => {
           return <p key={user}>{user}</p>
         })}
       </div>
-    </div>
+        </div>)
+      }
+
   </div>
   )
 });
@@ -62,6 +77,9 @@ const Event = () => {
 
     const [addingAvailability, setAddingAvailability] = useState<addingMode>(addingMode.view);
     const [userName, setUserName] = useState<string>("");
+
+    const [copyButtonText, setCopyButtonText] = useState<string>("Copy Link");
+    
 
     const availabilityTable = useRef<AvailabilityTableMethods>(null);
     // console.log("refreshing event")
@@ -143,8 +161,14 @@ const Event = () => {
                             {addingAvailability === addingMode.view ? "Enter Availability" : "Done"}
                         </button>
                         <button className='control-panel-button' 
-                        onClick={() => {navigator.clipboard.writeText(window.location.href);}}>
-                          Copy Link
+                        onClick={() => {
+                          navigator.clipboard.writeText(window.location.href);
+                            setCopyButtonText("Copied!");
+                            setTimeout(() => {
+                                setCopyButtonText("Copy Link");
+                            }, 2500);
+                          }}>
+                          {copyButtonText}
                         </button>
                       </div>
                     )

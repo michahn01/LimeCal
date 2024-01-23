@@ -185,12 +185,6 @@ type TimeSelectorProps = {
     availabilityTable: RefObject<any>;
 
 };
-// For deciding border styling on column elements (purely cosmetic)
-enum ColumnPosition {
-    LeftMost, 
-    Middle,
-    RightMost
-}
 const TimeSelector: FC<TimeSelectorProps> = 
 ({ viewWindowRange, dates, timezone, addingAvailability, userName, 
     eventPublicId, availabilityTable }) => {
@@ -260,6 +254,7 @@ const TimeSelector: FC<TimeSelectorProps> =
         setNumAttendees(num);
         setIntervalStates(loadedStates);
         setUserTimesMap(availabilityMap);
+        availabilityTable.current?.setNumUsers(num);
     }
 
     const sendTimeUpdatesToApi = () => {
@@ -439,12 +434,11 @@ const TimeSelector: FC<TimeSelectorProps> =
             </div>
             </div>
             {panelDates.map((date, index) => {
-                const col_pos = index === 0 ? ColumnPosition.LeftMost : 
-                (index === (dates.length - 1) ? ColumnPosition.RightMost : ColumnPosition.Middle);
+                const isRightMost: boolean = index === (dates.length - 1);
                 const dateDay = parseDayAndDate(date, timezone);
                 return (
                     <div className='date-column' key={date.toISOString()}
-                    style={{borderRight: col_pos === ColumnPosition.RightMost ? '1px solid #cfcfcf' : '' }}>
+                    style={{borderRight: isRightMost ? '1px solid #cfcfcf' : '' }}>
                     <div className='date-column-header'>
                         <h2>{dateDay[0]}</h2>
                         <p>{dateDay[1]}</p>

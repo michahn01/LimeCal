@@ -133,6 +133,9 @@ p {
     box-sizing: border-box;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
+
+    display: flex;
+    flex-direction: row;
 }
 
 .column-entry {
@@ -141,6 +144,16 @@ p {
     padding: 7px 15px;
 }
 
+.body-column {
+    width: 50%;
+    box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 5px 14px;
+    word-wrap: break-word;
+}
+.left-column {
+    border-right: 2px dashed #c2c2c2;
+}
 .table-header {
     display: flex;
     flex-direction: row;

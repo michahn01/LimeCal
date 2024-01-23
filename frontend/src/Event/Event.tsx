@@ -1,5 +1,5 @@
 import TimeSelector from './TimeSelector.tsx';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useParams } from 'react-router-dom';
 import TimezoneSelect, { type ITimezone } from 'react-timezone-select'
 
@@ -7,6 +7,44 @@ import axiosConfig from '../axios.ts';
 
 import "./css/Event.css"
 
+
+type AvailabilityTableMethods = {
+  setAvailableUsers: (times: string[]) => void;
+  setUnavailableUsers: (times: string[]) => void;
+};
+const AvailabilityTable = forwardRef<AvailabilityTableMethods, {}>((_, ref) => {
+  const [available, setAvailable] = useState<string[]>([]);
+  const [unavailable, setUnavailable] = useState<string[]>([]);
+
+  useImperativeHandle(ref, () => ({
+    setAvailableUsers: (users: string[]) => {
+      setAvailable(users);
+    },
+    setUnavailableUsers: (users: string[]) => {
+      setUnavailable(users);
+  }
+}));
+  return (
+    <div className='availability-table'>
+    <div className='table-header'>
+      <div className='column-entry'>Available</div>
+      <div className='column-entry'>Unavailable</div>
+    </div>
+    <div className='table-body'>
+      <div className='body-column left-column'>
+        {available.map((user: string) => {
+          return <p key={user} >{user}</p>
+        })}
+      </div>
+      <div className='body-column'>
+        {unavailable.map((user: string) => {
+          return <p key={user}>{user}</p>
+        })}
+      </div>
+    </div>
+  </div>
+  )
+});
 
 enum addingMode {
   view = 0,
@@ -25,6 +63,8 @@ const Event = () => {
     const [addingAvailability, setAddingAvailability] = useState<addingMode>(addingMode.view);
     const [userName, setUserName] = useState<string>("");
 
+    const availabilityTable = useRef<AvailabilityTableMethods>(null);
+    // console.log("refreshing event")
     useEffect(() => {
       axiosConfig.get(`/event/${eventId}`)
       .then((response) => {
@@ -110,15 +150,7 @@ const Event = () => {
                     )
             }
             <p>If you're a returning user, sign in with the same name.</p>
-            <div className='availability-table'>
-              <div className='table-header'>
-                <div className='column-entry'>Available</div>
-                <div className='column-entry'>Unavailable</div>
-              </div>
-              <div className='table-body'>
-
-              </div>
-            </div>
+            <AvailabilityTable ref={availabilityTable}></AvailabilityTable>
           </div>
           <div className='time-selector-group'>
             <div className='time-selector-top-header'> 
@@ -149,7 +181,8 @@ const Event = () => {
                           timezone={timezone}
                           addingAvailability={addingAvailability === addingMode.enteringTimes}
                           userName={userName}
-                          eventPublicId={eventId ? eventId : ""}>
+                          eventPublicId={eventId ? eventId : ""}
+                          availabilityTable={availabilityTable}>
             </TimeSelector>
           </div>
 

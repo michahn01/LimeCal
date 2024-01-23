@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, RefObject } from 'react';
 import moment from 'moment-timezone';
 import axiosConfig from '../axios.ts';
 
@@ -45,7 +45,6 @@ const parseDayAndDate = (date: Date, timezone: string): string[] => {
 }
 // converts hh:mm:ss to "X AM" or "Y PM" format
 const convertTimestamp = (timestamp: string): string => {
-    // console.log(timestamp);
     const hr_min = timestamp.split(':');
     let hours = parseInt(hr_min[0]);
     let min = parseInt(hr_min[1]);
@@ -156,7 +155,6 @@ const getMergedIntervals = (intervals: number[]): string[] => {
 
 // requirement: 0 <= fraction <= 1
 const generateGreenShade = (fraction: number): string => {
-    // Define the start (light gray #d3d3d3) and end (green #339900) colors in RGB
     const startColor = { r: 236, g: 236, b: 236 };
     const endColor = { r: 51, g: 153, b: 0 };
 
@@ -184,6 +182,8 @@ type TimeSelectorProps = {
     addingAvailability: boolean;
     userName: string;
     eventPublicId: string;
+    availabilityTable: RefObject<any>;
+
 };
 // For deciding border styling on column elements (purely cosmetic)
 enum ColumnPosition {
@@ -191,8 +191,11 @@ enum ColumnPosition {
     Middle,
     RightMost
 }
-const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone, addingAvailability, userName, eventPublicId }) => {
+const TimeSelector: FC<TimeSelectorProps> = 
+({ viewWindowRange, dates, timezone, addingAvailability, userName, 
+    eventPublicId, availabilityTable }) => {
 
+    // console.log("refreshing time selector")
     // 'times' contains the start times of all 15-minute time slots that must be 
     // displayed in selection panel's viewing window.  
     const [times, setTimes] = useState<string[]>([]);
@@ -224,6 +227,8 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
     // array of booleans that keeps track of on/off state of every interval
     const [intervalStates, setIntervalStates] = useState<number[]>([]);
 
+    const [userTimesMap, setUserTimesMap] = useState<Map<string, Set<number>>>(new Map<string, Set<number>>());
+
 
     const clearIntervalStates = () => {
         if (intervalStates.length > 0) {
@@ -235,21 +240,26 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
         const sortedStates = Object.entries(data).sort((a, b) => {
             return a[0].localeCompare(b[0]);
         });
+        const availabilityMap = new Map<string, Set<number>>();
         const loadedStates = Array(intervalStates.length).fill(0);
         let num: number = 0;
         for (let attendee_state of sortedStates) {
             const attendee_name: string = attendee_state[0];
+            availabilityMap.set(attendee_name, new Set<number>());
             num += 1;
             const attendee_intervals: string[] = attendee_state[1];
             for (let interval of attendee_intervals) {
                 const range: string[] = interval.split("~");
-                for (let i = parseInt(range[0]); i <= parseInt(range[1]); ++i) {
+                const end: number = parseInt(range[1]);
+                for (let i = parseInt(range[0]); i <= end; ++i) {
                     loadedStates[i] += 1;
+                    availabilityMap.get(attendee_name)?.add(i);
                 }
             }
         }
         setNumAttendees(num);
         setIntervalStates(loadedStates);
+        setUserTimesMap(availabilityMap);
     }
 
     const sendTimeUpdatesToApi = () => {
@@ -274,6 +284,7 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
     }
 
     const fetchIndividualFromApi = () => {
+        // console.log(userName);
         axiosConfig.post('/attendee', {
             "event_public_id": eventPublicId,
             "username": userName,
@@ -357,6 +368,20 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
             setVerticalBound([min_vertical_bound, max_vertical_bound]);
             setHorizontalBound([min_horizontal_bound, max_horizontal_bound]);
         }
+        else if (!addingAvailability) {
+            const availableUsers = [];
+            const unavailableUsers = [];
+            for (const [name, userTimes] of userTimesMap.entries()) {
+                if (userTimes.has(index)) {
+                    availableUsers.push(name);
+                }
+                else {
+                    unavailableUsers.push(name);
+                }
+            }
+            availabilityTable.current?.setAvailableUsers(availableUsers.sort());
+            availabilityTable.current?.setUnavailableUsers(unavailableUsers.sort());
+        }
     }
 
     useEffect(() => {
@@ -375,14 +400,17 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
      }, []);
 
      useEffect(() => {
-        if (!addingAvailability && intervalStates.length > 0) {
-            fetchTimesFromApi();
-        }
-        else {
-            fetchIndividualFromApi();
+        if (intervalStates.length > 0) {
+            if (!addingAvailability) {
+                fetchTimesFromApi();
+            }
+            else {
+                fetchIndividualFromApi();
+            }
         }
         setHorizontalBound([-1, -1]);
         setVerticalBound([-1, -1]);
+        setIsDragging(false);
      }, [addingAvailability, times])
 
     useEffect(() => {
@@ -421,7 +449,10 @@ const TimeSelector: FC<TimeSelectorProps> = ({ viewWindowRange, dates, timezone,
                         <h2>{dateDay[0]}</h2>
                         <p>{dateDay[1]}</p>
                     </div>
-                    <div className='date-column-timeslot-container'>
+                    <div className='date-column-timeslot-container' onMouseLeave={() => {
+                                    availabilityTable.current?.setAvailableUsers([]);
+                                    availabilityTable.current?.setUnavailableUsers([]);
+                    }}>
                         {times.map((time, index) => {
                             const intervalIndex = curr_index;
                             curr_index += 1;

@@ -5,8 +5,12 @@ import limecal_logo from "../assets/limecal_logo.png"
 import { NavLink } from 'react-router-dom'
 
 const Navbar = () => {
+    // display has been set to "none" here to avoid "Flash of Unstyled Content" (FOUC),
+    // where components load before CSS and thus are unstyled for a split second.
+    // The CSS for this component will override "display: none" with "display: flex"
+    // when the CSS arrives, so this component will not be seen until the CSS is ready.
     return (
-        <div className="navbar">
+        <div className="navbar" style={{display: "none"}}>
             <div className="navbar_subsection">
                 <NavLink className="horizontal_container" to="/">
                     <img id="limecal_logo" src={limecal_logo} alt="homepage link logo"></img>

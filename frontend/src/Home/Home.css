@@ -9,7 +9,12 @@
 }
 
 #page_body {
-    display: flex;
+    /* important annotation here is absolutely necessary, because
+    it is needed to override the "display: none" inline style in .navbar.
+    This was done to prevent "flash of unstyled content" (FOUC), 
+    where components load before CSS and therefore don't have styles 
+    for a split second. */
+    display: flex !important;
     flex-direction: column;
     align-items: center;
 }

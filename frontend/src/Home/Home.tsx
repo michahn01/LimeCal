@@ -4,8 +4,12 @@ import "./square_background.css"
 import { Link } from 'react-router-dom'
 
 const Home = () => {
+    // display has been set to "none" here to avoid "Flash of Unstyled Content" (FOUC),
+    // where components load before CSS and thus are unstyled for a split second.
+    // The CSS for this component will override "display: none" with "display: flex"
+    // when the CSS arrives, so this component will not be seen until the CSS is ready.
   return (
-    <div id='page_body'>
+    <div id='page_body' style={{display: "none"}}>
         <div className="relative_background">
             <div className='portable-container'>
                 <div className="lines">

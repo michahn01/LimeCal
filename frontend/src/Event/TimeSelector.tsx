@@ -1,8 +1,9 @@
+import './css/TimeSelector.css'
+
 import { FC, useState, useEffect, RefObject } from 'react';
 import moment from 'moment-timezone';
 import axiosConfig from '../axios.ts';
 
-import './css/TimeSelector.css'
 
 
 // ------------------------------
@@ -167,6 +168,7 @@ const generateGreenShade = (fraction: number): string => {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
+
 // ------------------------------
 // ------------------------------ ** End of Utility functions
 
@@ -212,7 +214,7 @@ const TimeSelector: FC<TimeSelectorProps> =
     const [horizontalBound, setHorizontalBound] = useState<number[]>([0, 0]);
     const [verticalBound, setVerticalBound] = useState<number[]>([0, 0]);
 
-    const [panelDates, setPanelDates] = useState<Date[]>([]);
+    const [panelDates, setPanelDates] = useState<Date[] | string[]>([]);
 
     const [originalTimezone] = useState<string>(timezone);
 
@@ -375,17 +377,30 @@ const TimeSelector: FC<TimeSelectorProps> =
     }
 
     useEffect(() => {
-        const firstInterval: Date = createDate(dates[0], viewWindowRange[0], timezone);
-        const lastInterval: Date = createDate(dates[0], viewWindowRange[1], timezone);
-        const result = daysAndMinutesBetween(firstInterval, lastInterval);
-        const interval_states: number[] = Array(result.minutes / 15 * dates.length).fill(false);
-        setIntervalStates(interval_states);
+        if (dates[0].length > 1) {
+            const firstInterval: Date = createDate(dates[0], viewWindowRange[0], timezone);
+            const lastInterval: Date = createDate(dates[0], viewWindowRange[1], timezone);
+            const result = daysAndMinutesBetween(firstInterval, lastInterval);
+            const interval_states: number[] = Array(result.minutes / 15 * dates.length).fill(false);
+            setIntervalStates(interval_states);
 
-        let arr: Date[] = [];
-        for (let date of dates) {
-            arr.push(createDate(date, viewWindowRange[0], timezone))
+            let arr: Date[] = [];
+            for (let date of dates) {
+                arr.push(createDate(date, viewWindowRange[0], timezone))
+            }
+            setPanelDates(arr);
         }
-        setPanelDates(arr);
+        else {
+            dates.sort();
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            setPanelDates(dates.map(num => daysOfWeek[parseInt(num)]));
+
+            const firstInterval: Date = createDate('2024/01/22', viewWindowRange[0], timezone);
+            const lastInterval: Date = createDate('2024/01/22', viewWindowRange[1], timezone);
+            const result = daysAndMinutesBetween(firstInterval, lastInterval);
+            const interval_states: number[] = Array(result.minutes / 15 * dates.length).fill(false);
+            setIntervalStates(interval_states);
+        }
 
      }, []);
 
@@ -470,14 +485,30 @@ const TimeSelector: FC<TimeSelectorProps> =
             </div>
             {panelDates.map((date, index) => {
                 const isRightMost: boolean = index === (dates.length - 1);
-                const dateDay = parseDayAndDate(date, timezone);
-                return (
-                    <div className='date-column' key={date.toISOString()}
-                    style={{borderRight: isRightMost ? '1px solid #cfcfcf' : '' }}>
+                let column_label: any;
+                let key: string = "";
+                if (typeof date === "string") {
+                    column_label = (
+                    <div className='date-column-header'>
+                        <h2>{date}</h2>
+                    </div>
+                    );
+                    key = date;
+                }
+                else {
+                    const dateDay = parseDayAndDate(date, timezone);
+                    column_label = (
                     <div className='date-column-header'>
                         <h2>{dateDay[0]}</h2>
                         <p>{dateDay[1]}</p>
                     </div>
+                    );
+                    key = date.toISOString();
+                }
+                return (
+                    <div className='date-column' key={key}
+                    style={{borderRight: isRightMost ? '1px solid #cfcfcf' : '' }}>
+                    {column_label}
                     <div className='date-column-timeslot-container' onMouseLeave={() => {
                                     availabilityTable.current?.setAvailableUsers([]);
                                     availabilityTable.current?.setUnavailableUsers([]);

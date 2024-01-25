@@ -1,8 +1,8 @@
+import "./styles.css"
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Home from "./Home/Home.jsx"
-import "./styles.css"
 import Navbar from "./Navbar/Navbar.jsx"
-// import Footer from "./Navbar/Footer.jsx"
 import Create from "./CreateEvent/CreateEvent.jsx"
 import Event from "./Event/Event.jsx"
 import NotFound from './NotFound.js'

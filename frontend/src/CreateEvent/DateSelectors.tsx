@@ -1,6 +1,5 @@
-// a calendar UI for selecting dates
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import './DateSelectors.css'
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 
 const getFirstDateOfMonth = (date: Date): Date => {
     const year = date.getFullYear();

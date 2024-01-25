@@ -1,11 +1,13 @@
+import "./CreateEvent.css"
+import "./DateSelectors.css"
+
 import { useState, useRef } from "react"
 import axiosConfig from "../axios.ts";
 import ReactSlider from 'react-slider'; 
 import TimezoneSelect, { type ITimezone } from 'react-timezone-select'
 import { useNavigate } from 'react-router-dom'
 
-import "./CreateEvent.css"
-import "./DateSelectors.css"
+
 import { CalendarSelector, WeeklySelector } from "./DateSelectors.tsx";
 import type { CalendarSelectorMethods, WeeklySelectorMethods } from './DateSelectors.tsx';
 

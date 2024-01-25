@@ -10,9 +10,7 @@
 }
 
 .form-container {
-  padding: 20px;
   border-radius: 8px;
-  /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
   width: 97%;
   font-family: 'Nunito Sans', sans-serif;
   max-width: 800px;
@@ -35,6 +33,7 @@
   background-color: #f0f0f0;
   color: #333;
   margin-bottom: 15px;
+  box-sizing: border-box;
 }
 
 #title::placeholder {
@@ -62,6 +61,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  min-width: 368px;
 }
 
 .time-selection-column {
@@ -70,10 +70,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  min-width: 368px;
 }
-
-
-
 
 .create-event-button {
   padding: 10px 15px;
@@ -91,8 +89,6 @@
   background-color: purple;
   color: white;
 }
-
-
 
 .time-range-selector-slider {
   width: 300px;
@@ -134,3 +130,80 @@
 .slider-times {
   font-size: 20px;
 }
+
+@media (max-width: 900px) {
+  .time-selection-area {
+    gap: 3%;
+    justify-content: center;
+  }
+  .date-selection-column {
+    width: 70%;
+  }
+  
+  .time-selection-column {
+    width: 70%;
+  }
+  .create-event-button {
+    margin-left: 15%;
+    width: 300px;
+  }
+}
+
+@media (max-width: 650px) {
+  .form-container {
+    align-items: center;
+    width: 100%;
+  }
+  .create-event-button {
+    margin-left: 0;
+    width: 300px;
+  }
+  .form-group {
+    width: 95%;
+  }
+  .date-selection-column {
+    width: 80%;
+  }
+  
+  .time-selection-column {
+    width: 80%;
+  }
+
+  .slider-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .timezone-select-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 500px) {
+  .date-selection-column {
+    width: 85%;
+  }
+  
+  .time-selection-column {
+    width: 80%;
+  }
+}
+
+@media (max-width: 370px) {
+  .date-selection-column {
+    min-width: 318px;
+    margin: 2px;
+    box-sizing: border-box;
+  }
+  
+  .time-selection-column {
+    min-width: 320px;
+    margin: 2px;
+    box-sizing: border-box;
+  }
+}
+
+

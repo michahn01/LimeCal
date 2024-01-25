@@ -110,6 +110,10 @@ const Create = () => {
                 return;
             }
         }
+        if (selection.length > 35) {
+            setSubmitMessage("Max number of days selectable is 35.");
+            return;   
+        }
         
         sendApiRequest(selection, title);
     }
@@ -188,6 +192,7 @@ const Create = () => {
                         </div>
 
                         <h3>Timezone:</h3>
+                        <div className="timezone-select-wrapper">
                         <TimezoneSelect 
                         value={selectedTimezone}
                         onChange={setSelectedTimezone}
@@ -202,6 +207,7 @@ const Create = () => {
                             })
                           }}
                         />
+                        </div>
                     </div>  
                 </div>
 

@@ -29,7 +29,7 @@ const Navbar = () => {
                     className={(n) => (n.isActive ? "link active_link" : 'link')}>
                     Feedback</NavLink>
                 </li>
-                <li className="horizontal_container">
+                <li className="horizontal_container" id="github-section">
                     <a href="https://github.com/michahn01/LimeCal" id="version_text">v0.1.0</a>
                     <a href="https://github.com/michahn01/LimeCal">
                         <img id="gitHubLink" src={gitHubLogo} alt="github link"></img>

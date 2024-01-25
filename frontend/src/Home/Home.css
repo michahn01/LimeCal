@@ -80,6 +80,7 @@
     color: rgb(51, 51, 51);
     font-size: 20px;
     font-family: "Poppins";
+    padding-left: 30px;
 }
 .checkmarks-list li::before {
     content:"\2713";
@@ -107,4 +108,31 @@
   background-color: #53ac57; 
   color: rgb(224, 224, 224);
   transform: scale(1.03); 
+}
+
+
+@media (max-width: 500px) {
+    .text-box {
+        font-size: 37px;
+    }
+    .text-box p {
+        font-size: 20px;
+    }
+    .checkmarks-list {
+        font-size: 20px;
+    }
+    #big-create-button {
+        font-size: 20px;
+    }
+    .checkmarks-list li::before {
+        content:"\2713";
+        position: absolute;
+        left: 0px;
+    }
+}
+
+@media (max-width: 410px) {
+    .checkmarks-list {
+        font-size: 18px;
+    }
 }

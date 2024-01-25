@@ -62,6 +62,11 @@ const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorPro
 
     const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
 
+    // irrelevant for when user is on a computer;
+    // relevant only for touch-based mobile users.
+    const [inTouchMode, setInTouchMode] = useState<boolean>(false);
+    const [lastHoveredSlotID, setLastHoveredSlotID] = useState<string>("");
+
     const pushData = (): Array<string> => {
         const dates: Array<string> = [];
         for (let date of selectedDates) {
@@ -112,7 +117,7 @@ const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorPro
     }
 
     const DraggingDone = () => {
-        if (isDragging) {
+        if (isDragging && !inTouchMode) {
             setIsDragging(false);
         }
     };
@@ -138,6 +143,7 @@ const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorPro
             setSelectedDates(newSelectedDates);
             return;
         }
+        if (inTouchMode) return;
         document.addEventListener('mouseup', DraggingDone);
         return () => {
             document.removeEventListener('mouseup', DraggingDone);
@@ -147,7 +153,7 @@ const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorPro
     // callback function for when a cell representing a date is clicked
     // 'cellActive' := whether a cell is already selected
     const dateCellClicked = (cellActive: boolean, rowDate: Date, cellIndex: number) => {
-        if (!isDragging) {
+        if (!isDragging && !inTouchMode) {
             setIsDragging(true);
             setIsAdding(!cellActive);
             setStartCellRowIndex(rowDate);
@@ -158,7 +164,6 @@ const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorPro
     }
     const dateCellHovered = (rowDate: Date, cellIndex: number) => {
         if (isDragging) {
-
             let min_horizontal_bound: number = cellIndex < startCellRowOffset ? cellIndex : startCellRowOffset;
             let max_horizontal_bound: number = cellIndex > startCellRowOffset ? cellIndex : startCellRowOffset;
             let min_vertical_bound: Date = rowDate < startCellRowIndex ? rowDate : startCellRowIndex;
@@ -166,6 +171,37 @@ const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorPro
 
             setVerticalBound([min_vertical_bound, max_vertical_bound]);
             setHorizontalBound([min_horizontal_bound, max_horizontal_bound]);
+        }
+    }
+
+    // for mobile 
+    const dateCellTouched = (cellActive: boolean, rowDate: Date, cellIndex: number) => {
+        if (!isDragging) {
+            setInTouchMode(true);
+            setIsAdding(!cellActive);
+            setStartCellRowIndex(rowDate);
+            setStarCellRowOffset(cellIndex);
+            setHorizontalBound([cellIndex, cellIndex]);
+            setVerticalBound([rowDate, rowDate]);
+            setIsDragging(true);
+        }
+    }
+    const handleTouchMove = (e: any) => {
+        const touchLocation = e.touches[0];
+        const elementAtTouchPoint: Element | null = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
+        // Check if the element is the target div (you can use a ref or id check here)
+        const hovered_div_id: string | undefined = elementAtTouchPoint?.id;
+        
+        if (hovered_div_id && hovered_div_id != lastHoveredSlotID) {
+            const parts: string[] = hovered_div_id.split('&');
+            dateCellHovered(firstDates[parseInt(parts[0])], parseInt(parts[1]));
+            setLastHoveredSlotID(hovered_div_id);
+        }
+
+    }
+    const touchEnded = () => {
+        if (isDragging) {
+            setIsDragging(false);
         }
     }
 
@@ -191,7 +227,7 @@ const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorPro
                 )
             })}
             </div>
-            {firstDates.map((rowDate) => {
+            {firstDates.map((rowDate, firstDatesIndex) => {
                 const currentDate: Date = new Date(rowDate);
                 const rowDates: Date[] = [];
                 for (let i: number = 0; i < 7; ++i) {
@@ -202,9 +238,14 @@ const CalendarSelector = forwardRef<CalendarSelectorMethods, CalendarSelectorPro
                     <div key={rowDate.toISOString()} className='calendar-row'>
                         {rowDates.map((cellDate, cellIndex) => {
                             return (
-                                <div key={cellDate.toISOString()} className='calendar-date'
+                                <div id={`${firstDatesIndex}&${cellIndex}`}
+                                key={cellDate.toISOString()} className='calendar-date'
                                 onMouseDown={() => {dateCellClicked(selectedDates.has(cellDate.toISOString()), rowDate, cellIndex)}}
                                 onMouseEnter={() => {dateCellHovered(rowDate, cellIndex)}}
+                                onTouchStart={() => {dateCellTouched(selectedDates.has(cellDate.toISOString()), rowDate, cellIndex)}}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={touchEnded}
+                                onTouchCancel={touchEnded}
                                 style={{borderLeft: cellIndex === 0 ? '1px solid lightgrey' : '',
                                         color: cellDate < currentMonthFirst || cellDate > currentMonthLast ? 
                                         'lightgrey' : '#5c5c5c', 
@@ -235,6 +276,40 @@ const WeeklySelector = forwardRef<WeeklySelectorMethods, WeeklySelectorProps>(({
     const [startCellIndex, setStartCellIndex] = useState<number>(0);
     const [cellStates, setCellStates] = useState<boolean[]>(new Array(7).fill(false));
 
+    // irrelevant for when user is on a computer;
+    // relevant only for touch-based mobile users.
+    const [inTouchMode, setInTouchMode] = useState<boolean>(false);
+    const [lastHoveredSlotID, setLastHoveredSlotID] = useState<string>('');
+
+    // for mobile 
+    const dateCellTouched = (cellActive: boolean, cellIndex: number) => {
+        if (!isDragging) {
+            setInTouchMode(true);
+
+            setIsDragging(true);
+            setIsAdding(!cellActive);
+            setStartCellIndex(cellIndex);
+            setHorizontalBound([cellIndex, cellIndex]);
+        }
+    }
+    const handleTouchMove = (e: any) => {
+        const touchLocation = e.touches[0];
+        const elementAtTouchPoint: Element | null = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
+        // Check if the element is the target div (you can use a ref or id check here)
+        const hovered_div_id: string | undefined = elementAtTouchPoint?.id;
+        
+        if (hovered_div_id && hovered_div_id != lastHoveredSlotID) {
+            const parts: string[] = hovered_div_id.split('&');
+            dateCellHovered(parseInt(parts[1]));
+            setLastHoveredSlotID(hovered_div_id);
+        }
+    }
+    const touchEnded = () => {
+        if (isDragging) {
+            setIsDragging(false);
+        }
+    }
+
     const pushData = (): Array<boolean> => {
         return cellStates;
     }
@@ -244,7 +319,7 @@ const WeeklySelector = forwardRef<WeeklySelectorMethods, WeeklySelectorProps>(({
     }));
 
     const DraggingDone = () => {
-        if (isDragging) {
+        if (isDragging && !inTouchMode) {
             setIsDragging(false);
         }
     };
@@ -262,6 +337,7 @@ const WeeklySelector = forwardRef<WeeklySelectorMethods, WeeklySelectorProps>(({
             setCellStates(newCellStates);
             return;
         }
+        if (inTouchMode) return;
         document.addEventListener('mouseup', DraggingDone);
         return () => {
             document.removeEventListener('mouseup', DraggingDone);
@@ -271,7 +347,7 @@ const WeeklySelector = forwardRef<WeeklySelectorMethods, WeeklySelectorProps>(({
     // callback function for when a cell representing a date is clicked
     // 'cellActive' := whether a cell is already selected
     const dateCellClicked = (cellActive: boolean, cellIndex: number) => {
-        if (!isDragging) {
+        if (!isDragging && !inTouchMode) {
             setIsDragging(true);
             setIsAdding(!cellActive);
             setStartCellIndex(cellIndex);
@@ -298,12 +374,16 @@ const WeeklySelector = forwardRef<WeeklySelectorMethods, WeeklySelectorProps>(({
             <div className='calendar-row'>
             {days.map((day, index) => {
                 return (
-                    <div key={day} className='weekly-date'
+                    <div id={`${day}&${index}`} key={day} className='weekly-date'
                          style={{borderLeft: index === 0 ? '1px solid lightgrey' : '', 
                                  backgroundColor: isSelected(index) ? (isAdding ? '#68b516' : '') : 
                                  (cellStates[index] ? '#68b516' : '')}}
                          onMouseEnter={() => {dateCellHovered(index)}}
-                         onMouseDown={() => {dateCellClicked(cellStates[index], index)}}>
+                         onMouseDown={() => {dateCellClicked(cellStates[index], index)}}
+                         onTouchStart={() => {dateCellTouched(cellStates[index], index)}}
+                         onTouchMove={handleTouchMove}
+                         onTouchEnd={touchEnded}
+                         onTouchCancel={touchEnded}>
                         {day[0]}
                     </div>
                 )

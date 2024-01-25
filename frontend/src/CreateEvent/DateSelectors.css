@@ -35,6 +35,7 @@
   padding-top: 3px;
   padding-left: 8px;
   border-right: 1px solid lightgrey;
+  touch-action: none;
 }
 
 .weekly-date {
@@ -47,6 +48,7 @@
   border-right: 1px solid lightgrey;
   border-top: 1px solid lightgrey;
   color: #5c5c5c;
+  touch-action: none;
 }
 
 .calendar-header-cell {

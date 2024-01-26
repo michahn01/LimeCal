@@ -439,7 +439,9 @@ const TimeSelector: FC<TimeSelectorProps> =
         <div>
             
             <div className='colors-legend-container'>
-                <div className='colors-legend-label'><sup>0</sup>/<sub>{lengthColorKey}</sub></div>
+                <div className='colors-legend-label left-label'>
+                    <sup>0</sup>/<sub>{numAttendees}</sub>​
+                </div>
                 <div className='colors-legend'>
                 {colorLegendKeys.map((shade: string) => {
                     return (
@@ -454,7 +456,9 @@ const TimeSelector: FC<TimeSelectorProps> =
                     )
                 })}
                 </div>
-                <div className='colors-legend-label'><sup>{lengthColorKey}</sup>/<sub>{lengthColorKey}</sub></div>
+                <div className='colors-legend-label right-label'>
+                    <sup>{numAttendees}</sup>/<sub>{numAttendees}</sub>
+                </div>
             </div>
 
             
@@ -483,6 +487,7 @@ const TimeSelector: FC<TimeSelectorProps> =
                 {convertTimestamp(convertTimezones(viewWindowRange[1], originalTimezone, timezone))}
             </div>
             </div>
+            <div className='time-selector-drag-selector-container'>
             {panelDates.map((date, index) => {
                 const isRightMost: boolean = index === (dates.length - 1);
                 let column_label: any;
@@ -541,6 +546,7 @@ const TimeSelector: FC<TimeSelectorProps> =
                 </div>
                 )
             })}
+            </div>
         </div>
         </div>
     );

@@ -12,6 +12,7 @@
     align-items: flex-start;
     font-family: 'Nunito Sans', sans-serif;
     min-height: 650px;
+    row-gap: 30px;
 }
 
 p {
@@ -33,7 +34,7 @@ p {
     padding: 10px 15px;
     border: 1px solid #cccccc;
     border-radius: 4px;
-    color: #333333;
+    color: #4a4a4a;
     cursor: pointer;
     transition: border 0.15s;
     font-size: 17px;

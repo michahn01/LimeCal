@@ -1,7 +1,6 @@
 .time-selector {
     max-width: 610px;
     min-height: 400px;
-    overflow-x: scroll;   
     display: flex;
     flex-direction: row;
     align-items: start;
@@ -43,6 +42,7 @@
 
 .selectable-time-slot {
     height: 8px;
+    touch-action: none;
 }
 .time-slot-adding {
     transition: background-color 0.2s ease;
@@ -57,6 +57,12 @@
     flex-direction: column;
     margin-right: 10px;
 }
+
+.time-selector-drag-selector-container {
+    display: flex;
+    flex-direction: row;
+    overflow-x: scroll;   
+}
 .header {
     height: 77px;
     box-sizing: border-box;
@@ -70,11 +76,9 @@
 }
 
 .colors-legend {
-    width: 300px;
+    width: 320px;
     height: 50px;
     border: 2px solid #d0d0d0;
-    margin-left: 20px;
-    margin-right: 10px;
     display: flex;
     flex-direction: row;
 }
@@ -82,13 +86,21 @@
 .colors-legend-container {
     display: flex;
     flex-direction: row;
-    margin-left: 50px;
     margin-bottom: 20px;
     align-items: center;
 }
 
 .colors-legend-label {
-    width: 10px;
+    width: 70px;
+}
+
+.left-label {
+    margin-right: 10px;
+    text-align: right;
+}
+.right-label {
+    text-align: left;
+    margin-left: 10px;
 }
 
 .time-selector-header-label {
@@ -96,10 +108,31 @@
     margin-bottom: 10px;
     word-break: break-all;
     max-width: 300px;
+    color: #4a4a4a;
 }
 .colors-legend-labels {
-    margin-left: 80px;
+    margin-left: 70px;
     margin-bottom: 20px; 
     display: flex;
     justify-content: space-between;
+}
+
+
+
+
+
+@media (max-width: 640px) {
+    .time-selector-group {
+        width: 95%;
+        margin: 0;
+    }
+
+
+    .colors-legend {
+        margin: 0;
+    }
+    
+    .colors-legend-label {
+        width: 10px;
+    }
 }

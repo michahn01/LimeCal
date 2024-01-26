@@ -204,7 +204,7 @@ const Event = () => {
                 styles={{
                     control: (base) => ({
                       ...base,
-                      width: '300px'
+                      width: '315px'
                     }),
                     menu: (base) => ({
                       ...base
@@ -215,10 +215,6 @@ const Event = () => {
 
           </div>
           <div className='time-selector-group'>
-            {/* <div className='time-selector-top-header'> 
-
-            </div> */}
-
             <TimeSelector viewWindowRange={viewWindowRange} 
                           dates={dates} 
                           timezone={timezone}

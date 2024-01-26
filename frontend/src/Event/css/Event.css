@@ -33,19 +33,21 @@ p {
 .control-panel-button {
     padding: 10px 15px;
     border: 1px solid #cccccc;
+    box-sizing: border-box;
+    width: 48%;
     border-radius: 4px;
     color: #4a4a4a;
     cursor: pointer;
     transition: border 0.15s;
-    font-size: 17px;
+    font-size: 16px;
     background-color: #ffffff;
 }
 
 .buttons-row {
     display: flex;
     flex-direction: row;
-    gap: 10px;
     flex-wrap: wrap;
+    justify-content: space-around;
 }
   
 .control-panel-button:hover {

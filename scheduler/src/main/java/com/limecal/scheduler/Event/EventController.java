@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,14 +28,6 @@ public class EventController {
     public EventController(EventService eventService) {
         this.eventService = eventService;
     }
-
-	// for Development
-	@GetMapping(path = "")
-	public ResponseEntity<Map<String, Event>> getAllEvents() {
-        return new ResponseEntity<>
-		(eventService.getAllEvents(), HttpStatus.OK);
-	}
-
 	
 	@GetMapping(path = "/{public_id}")
 	public ResponseEntity<Map<String, Object>> getEvent(@PathVariable String public_id) {

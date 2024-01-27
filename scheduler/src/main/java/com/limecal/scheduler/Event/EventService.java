@@ -53,8 +53,6 @@ public class EventService {
             availabilities.put(a.getUsername(), eventDAO.fetchAvailableTimes(a));
         }
         event_info.put("attendees", availabilities);
-
-        // System.out.println(e.getDates());
         
         return event_info;
     }

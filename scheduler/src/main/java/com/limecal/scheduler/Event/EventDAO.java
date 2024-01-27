@@ -116,7 +116,7 @@ public class EventDAO implements DAO<Event> {
             event = jdbcTemplate.queryForObject(sql, rowMapper, id);
         }
         catch(DataAccessException ex) {
-           // todo: add some logging
+           // for the future: add some logging
         }
 
         return Optional.ofNullable(event);
@@ -131,7 +131,7 @@ public class EventDAO implements DAO<Event> {
             setDatesForEvent(event);
         }
         catch(DataAccessException ex) {
-           // todo: add some logging
+           // for the future: add some logging
         }
 
         return Optional.ofNullable(event);
@@ -158,7 +158,6 @@ public class EventDAO implements DAO<Event> {
 
         if (dateRowMapper != null) {
             List<String> dates = jdbcTemplate.query(query, dateRowMapper, event_id);
-            // System.out.println(dates);
             event.setDates(dates);
         }
     }

@@ -214,16 +214,14 @@ const Event = () => {
             </div>
 
           </div>
-          <div className='time-selector-group'>
-            <TimeSelector viewWindowRange={viewWindowRange} 
-                          dates={dates} 
-                          timezone={timezone}
-                          addingAvailability={addingAvailability === addingMode.enteringTimes}
-                          userName={userName}
-                          eventPublicId={eventId ? eventId : ""}
-                          availabilityTable={availabilityTable}>
-            </TimeSelector>
-          </div>
+          <TimeSelector viewWindowRange={viewWindowRange} 
+                        dates={dates} 
+                        timezone={timezone}
+                        addingAvailability={addingAvailability === addingMode.enteringTimes}
+                        userName={userName}
+                        eventPublicId={eventId ? eventId : ""}
+                        availabilityTable={availabilityTable}>
+          </TimeSelector>
 
         </div>
     )

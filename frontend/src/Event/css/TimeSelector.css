@@ -72,7 +72,7 @@
     height: 33px;
     white-space: nowrap;
     text-align: right;
-    width: 60px;
+    min-width: 60px;
 }
 
 .colors-legend {
@@ -91,16 +91,16 @@
 }
 
 .colors-legend-label {
-    width: 60px;
+    min-width: 60px;
 }
 
 .left-label {
-    margin-right: 10px;
+    margin-right: 12px;
     text-align: right;
 }
 .right-label {
     text-align: left;
-    margin-left: 10px;
+    margin-left: 12px;
 }
 
 .time-selector-header-label {
@@ -114,25 +114,54 @@
     margin-left: 70px;
     margin-bottom: 20px; 
     display: flex;
+    color: #4a4a4a;
     justify-content: space-between;
 }
 
 
 
 
-
 @media (max-width: 640px) {
     .time-selector-group {
-        width: 100%;
         margin: 0;
+        align-items: center;
+        width: 100%;
     }
 
-    .colors-legend {
-        width: 90%;
-        max-width: 320px;
+    .time-selector {
+        justify-content: center;
+        width: 100%;
+        box-sizing: border-box;
+        margin-left: 9px;
+        margin-right: 5px;
+    }
+
+    .colors-legend-label {
+        min-width: 0px;
+    }
+
+    .time-selector-header-label {
+        margin-left: 0;
     }
 
     .colors-legend-container {
         justify-content: center;
+        width: 100%;
+    }
+
+    .time-selector-drag-selector-container {
+        margin-right: 3px;
+        box-sizing: border-box; 
+    }
+
+    .time-label {
+        min-width: 0px;
+    }
+}
+
+@media (max-width: 400px) {
+    .colors-legend {
+        width: 75%;
+        max-width: 320px;
     }
 }

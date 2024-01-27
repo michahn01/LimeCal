@@ -226,6 +226,10 @@ const TimeSelector: FC<TimeSelectorProps> =
 
     const [userTimesMap, setUserTimesMap] = useState<Map<string, Set<number>>>(new Map<string, Set<number>>());
 
+    // for mobile (touch) compatibility
+    const [inTouchMode, setInTouchMode] = useState<boolean>(false);
+    const [lastHoveredSlotID, setLastHoveredSlotID] = useState<string>('');
+
     const loadIntervalStates = (data: Object) => {
         const sortedStates = Object.entries(data).sort((a, b) => {
             return a[0].localeCompare(b[0]);
@@ -298,7 +302,7 @@ const TimeSelector: FC<TimeSelectorProps> =
     // callBack for when mouse is lifted (for when selection has been finished being drawn)
     // primary job is to set isDragging to false.
     const DraggingDone = () => {
-        if (isDragging) {
+        if (isDragging && !inTouchMode) {
             setIsDragging(false);
         }
     };
@@ -316,6 +320,9 @@ const TimeSelector: FC<TimeSelectorProps> =
             sendTimeUpdatesToApi();
             return;
         }
+
+        if (inTouchMode) return;
+
         document.addEventListener('mouseup', DraggingDone);
         return () => {
             document.removeEventListener('mouseup', DraggingDone);
@@ -344,6 +351,30 @@ const TimeSelector: FC<TimeSelectorProps> =
         setStartCellRow(row);
         setHorizontalBound([column, column]);
         setVerticalBound([row, row]);
+    }
+
+    // for mobile
+    const timeSlotTouched = (index: number, timeSlotActive: number): void => {
+        if (!isDragging) {
+            setInTouchMode(true);
+            timeSlotClicked(index, timeSlotActive);
+        }
+    }
+    const handleTouchMove = (e: any) => {
+        const touchLocation = e.touches[0];
+        const elementAtTouchPoint: Element | null = document.elementFromPoint(touchLocation.clientX, touchLocation.clientY);
+        const hovered_div_id: string | undefined = elementAtTouchPoint?.id;
+        
+        if (hovered_div_id && hovered_div_id != lastHoveredSlotID) {
+            setLastHoveredSlotID(hovered_div_id);
+            const parts: string[] = hovered_div_id.split('&');
+            timeSlotHovered(parseInt(parts[1]));
+        }
+    }
+    const touchEnded = () => {
+        if (isDragging) {
+            setIsDragging(false);
+        }
     }
 
     // callback function for when user hovers over a particular time slot.
@@ -436,7 +467,7 @@ const TimeSelector: FC<TimeSelectorProps> =
 
     let curr_index: number = 0;
     return (
-        <div>
+        <div className='time-selector-group'>
             
             <div className='colors-legend-container'>
                 <div className='colors-legend-label left-label'>
@@ -524,6 +555,7 @@ const TimeSelector: FC<TimeSelectorProps> =
                             return (
                                 <div
                                 key={time}
+                                id={`s&${intervalIndex}`}
                                 className={addingAvailability ? 'selectable-time-slot time-slot-adding' : 'selectable-time-slot'}
                                 style={{
                                     borderBottom: (index + 1) % 4 === 0 ? '1px solid #cfcfcf' : '',
@@ -538,7 +570,12 @@ const TimeSelector: FC<TimeSelectorProps> =
                                 onMouseDown={() => { 
                                     timeSlotClicked(intervalIndex, intervalStates[intervalIndex]);
                                 }}
-                                onMouseEnter={() => {timeSlotHovered(intervalIndex)}}>
+                                onMouseEnter={() => {timeSlotHovered(intervalIndex)}}
+                                onTouchStart={() => {timeSlotTouched(intervalIndex, intervalStates[intervalIndex]);}}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={touchEnded}
+                                onTouchCancel={touchEnded}
+                                >
                                 </div>
                             )
                         })}

@@ -341,7 +341,7 @@ const TimeSelector: FC<TimeSelectorProps> =
     // callback function for when user clicks on a particular time slot to being drawing a selection.
     // Function will be called from within a DateColumn component. 
     const timeSlotClicked = (index: number, timeSlotActive: number): void => {
-        if (!addingAvailability) return; 
+        if (inTouchMode || !addingAvailability) return; 
 
         const column: number = Math.floor(index / times.length);
         const row: number = index % times.length;
@@ -355,10 +355,33 @@ const TimeSelector: FC<TimeSelectorProps> =
 
     // for mobile
     const timeSlotTouched = (index: number, timeSlotActive: number): void => {
-        if (!isDragging) {
-            setInTouchMode(true);
-            timeSlotClicked(index, timeSlotActive);
+        setInTouchMode(true);
+        if (!addingAvailability) {
+            availabilityTable.current?.setInTouchMode(true);
+            const availableUsers = [];
+            const unavailableUsers = [];
+            for (const [name, userTimes] of userTimesMap.entries()) {
+                if (userTimes.has(index)) {
+                    availableUsers.push(name);
+                }
+                else {
+                    unavailableUsers.push(name);
+                }
+            }
+            availabilityTable.current?.setAvailableUsers(availableUsers.sort());
+            availabilityTable.current?.setUnavailableUsers(unavailableUsers.sort());
         }
+        else if (!isDragging) {
+            const column: number = Math.floor(index / times.length);
+            const row: number = index % times.length;
+            setIsDragging(true);
+            setAddingTimes(!timeSlotActive);
+            setStartCellCol(column);
+            setStartCellRow(row);
+            setHorizontalBound([column, column]);
+            setVerticalBound([row, row]);
+        }
+
     }
     const handleTouchMove = (e: any) => {
         const touchLocation = e.touches[0];
@@ -375,6 +398,11 @@ const TimeSelector: FC<TimeSelectorProps> =
         if (isDragging) {
             setIsDragging(false);
         }
+        if (!addingAvailability) {
+            availabilityTable.current?.setAvailableUsers([]);
+            availabilityTable.current?.setUnavailableUsers([]);
+        }
+        availabilityTable.current?.setInTouchMode(false);
     }
 
     // callback function for when user hovers over a particular time slot.
@@ -497,7 +525,7 @@ const TimeSelector: FC<TimeSelectorProps> =
             <div className='time-selector-header-label'>
             {(addingAvailability) ? 
             `Entering ${userName}'s availability:` :
-            `Everyone's availability:`}
+            `Showing everyone's availability:`}    
             </div>
 
 
@@ -556,7 +584,8 @@ const TimeSelector: FC<TimeSelectorProps> =
                                 <div
                                 key={time}
                                 id={`s&${intervalIndex}`}
-                                className={addingAvailability ? 'selectable-time-slot time-slot-adding' : 'selectable-time-slot'}
+                                className={(addingAvailability && !inTouchMode) ? 
+                                            'selectable-time-slot time-slot-adding' : 'selectable-time-slot'}
                                 style={{
                                     borderBottom: (index + 1) % 4 === 0 ? '1px solid #cfcfcf' : '',
         

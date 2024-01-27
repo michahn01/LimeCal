@@ -1,0 +1,87 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200;300;400;500;600;700&display=swap");
+
+.feedback-page {
+  width: 100%;
+  min-height: 700px;
+  background-color: #ffffff;
+  padding: 10px;
+  box-sizing: border-box;
+
+  font-family: "Nunito Sans", sans-serif;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.feedback-page-content {
+  width: 95%;
+  max-width: 700px;
+}
+
+.feedback-form {
+  max-width: 500px;
+  margin: 2em auto;
+  padding: 1.5em;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: #f5f5f5;
+  border: 2px solid #ddd;
+}
+
+.feedback-form div {
+  margin-bottom: 1em;
+}
+
+.feedback-form label {
+  display: block;
+  margin-bottom: 0.5em;
+  font-weight: bold;
+  color: #333;
+}
+
+.feedback-form input[type="text"],
+.feedback-form select,
+.feedback-form textarea {
+  width: 100%;
+  padding: 0.75em;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 1em;
+  color: #333;
+  background-color: #fff;
+}
+
+.feedback-form input[type="text"]:focus,
+.feedback-form select:focus,
+.feedback-form textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.feedback-form textarea {
+  min-height: 100px;
+  width: 100%;
+  padding: 0.75em;
+  box-sizing: border-box;
+}
+
+.feedback-form button[type="submit"] {
+  width: 100%;
+  padding: 0.75em;
+  border: none;
+  border-radius: 4px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #0076d7;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.feedback-form button[type="submit"]:hover,
+.feedback-form button[type="submit"]:focus {
+  background-color: #0056b3;
+}

@@ -6,6 +6,7 @@ import Create from "./CreateEvent/CreateEvent.tsx"
 import Event from "./Event/Event.tsx"
 import NotFound from "./NotFound.tsx"
 import Help from "./Help/Help.tsx"
+import Feedback from "./Feedback/Feedback.tsx"
 
 
 function App() {
@@ -17,7 +18,7 @@ function App() {
         <Route path="/events/create" element={<Create />}></Route>
         <Route path="/events/:eventId" element={<Event />}></Route>
         <Route path="/help" element={<Help />}></Route>
-        <Route path="/feedback"></Route>
+        <Route path="/feedback" element={<Feedback />}></Route>
         <Route path="*" element={<NotFound />}></Route>
       </Routes>
     </Router>

@@ -126,7 +126,8 @@ const Create = () => {
         setViewWindowRange(newRange);
     }
     const sliderOnChange = (thumbValue: number[], _: number) => {
-        const newRange: string[] = [`${thumbValue[0]}:00`.padStart(5, '0'), `${thumbValue[1]}:00`.padStart(5, '0')]
+        const newRange: string[] = [convertTimestamp(`${thumbValue[0]}:00`.padStart(5, '0')), 
+                                    convertTimestamp(`${thumbValue[1]}:00`.padStart(5, '0'))]
         setSliderLabels(newRange);
     }
 
@@ -145,7 +146,7 @@ const Create = () => {
 
                 <div className='time-selection-area'>
                     <div className='date-selection-column'>
-                        <h2>What dates might work?</h2>
+                        <h2>What {selectingDates ? "dates" : "days"} might work?</h2>
 
                         <div className='dates-select-container'>
                             <div className='date-selection-toggle-button'>
@@ -168,7 +169,7 @@ const Create = () => {
 
                         <div className='slider-area'>
                         <div>
-                            <div className="slider-times">{convertTimestamp(sliderLabels[0])} - {convertTimestamp(sliderLabels[1])}</div>
+                            <div className="slider-times">{sliderLabels[0]} - {sliderLabels[1]}</div>
                             <ReactSlider
                             className="time-range-selector-slider"
                             thumbClassName="slider-thumb"
@@ -186,8 +187,7 @@ const Create = () => {
                             />
                         </div>
                         <p className="slider-instruction">
-                            Respondees will specify their availabilities within 
-                            this time interval.
+                            Respondents will fill in their available times within this range.
                         </p>
                         </div>
 

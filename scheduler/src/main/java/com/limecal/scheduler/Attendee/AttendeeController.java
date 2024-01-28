@@ -10,12 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+// import org.springframework.web.bind.annotation.CrossOrigin;
 import jakarta.validation.Valid;
 
-@CrossOrigin(origins = {
-        "*"
-})
 @RestController
 @RequestMapping(path = "api/v1/attendee")
 public class AttendeeController {

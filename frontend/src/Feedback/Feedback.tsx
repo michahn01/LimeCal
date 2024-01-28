@@ -1,5 +1,6 @@
 import "./feedback.css"
 import { useState } from 'react';
+import axiosConfig from "../axios.ts";
 
 
 interface FeedbackData {
@@ -9,19 +10,31 @@ interface FeedbackData {
   
 const FeedbackForm = () => {
     const [feedbackData, setFeedbackData] = useState<FeedbackData>({ feedbackType: 'bug', message: '' });
+    const [statusMessage, setStatusMessage] = useState<string>("");
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFeedbackData({ ...feedbackData, [e.target.name]: e.target.value });
     };
     
-    const sendFeedback = (feedback: FeedbackData) => {
-        
+    const sendFeedbackToApi = (feedback: FeedbackData) => {
+        setStatusMessage("Sending...");
+        axiosConfig.post('/sendFeedback', {
+            "feedbackType": feedback.feedbackType,
+            "feedbackMessage": feedback.message
+        })
+        .then(() => {
+            setStatusMessage("Successfully sent feedback! We really appreciate it!");
+            console.log('set message')
+        })
+        .catch(() => {
+            setStatusMessage("Something went wrong. Please try again.")
+        });
     }
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         if (feedbackData.message) {
-        sendFeedback(feedbackData);
+        sendFeedbackToApi(feedbackData);
         setFeedbackData({ feedbackType: 'bug', message: '' });
         } else {
         alert('Please fill out all fields.');
@@ -43,6 +56,9 @@ const FeedbackForm = () => {
             <textarea id="message" name="message" value={feedbackData.message} onChange={handleChange} />
         </div>
         <button type="submit">Submit Feedback</button>
+        {
+            (statusMessage !== "") ? <p style={{marginTop: "30px", marginBottom: "0px"}}>{statusMessage}</p> : null
+        }
         </form>
     );
 };

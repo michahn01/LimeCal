@@ -178,6 +178,18 @@ const Event = () => {
     );
   }
 
+  const copyLink = async (): Promise<void> => {    
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        setCopyButtonText("Copied!");
+        setTimeout(() => {
+            setCopyButtonText("Copy Link");
+        }, 2500);
+    } catch (error) {
+        alert(error);
+    }
+  }
+
   return (
     <div className="event-page-body">
       <div className="event-page-container">
@@ -257,13 +269,7 @@ const Event = () => {
                   </button>
                   <button
                     className="control-panel-button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      setCopyButtonText("Copied!");
-                      setTimeout(() => {
-                        setCopyButtonText("Copy Link");
-                      }, 2500);
-                    }}
+                    onClick={copyLink}
                   >
                     {copyButtonText}
                   </button>

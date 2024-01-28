@@ -132,6 +132,7 @@ const Event = () => {
   const [timezone, setTimezone] = useState<string>("");
   const [selectedTimezone, setSelectedTimezone] =
     useState<ITimezone>("America/Detroit");
+  const [eventTitle, setEventTitle] = useState<string>("");
 
   const [addingAvailability, setAddingAvailability] = useState<addingMode>(
     addingMode.view
@@ -144,7 +145,6 @@ const Event = () => {
   );
 
   const availabilityTable = useRef<AvailabilityTableMethods>(null);
-  // console.log("refreshing event")
   useEffect(() => {
     axiosConfig
       .get(`/event/${eventId}`)
@@ -155,6 +155,7 @@ const Event = () => {
         setDates(response.data.dates);
         setTimezone(response.data.timezone);
         setSelectedTimezone(response.data.timezone);
+        setEventTitle(response.data.title);
       })
       .catch(() => {
         setPageFound(false);
@@ -178,129 +179,134 @@ const Event = () => {
   }
 
   return (
-    <div className="page-body">
-      <div className="control-panel">
-        {addingAvailability === addingMode.enteringName ? (
-          <div className="name-form">
-            <form>
-              Enter your name:
-              <input
-                type="text"
-                className="name-input"
-                name="name"
-                onChange={(data) => {
-                  setUserName(data.target.value);
+    <div className="event-page-body">
+      <div className="event-page-container">
+        <h1 className="event-title">{eventTitle}</h1>
+          <div className="event-page-content">
+            <div className="control-panel">
+              {addingAvailability === addingMode.enteringName ? (
+                <div className="name-form">
+                  <form>
+                    Enter your name:
+                    <input
+                      type="text"
+                      className="name-input"
+                      name="name"
+                      onChange={(data) => {
+                        setUserName(data.target.value);
+                      }}
+                    />
+                    <div className="button-group">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (userName.length == 0) {
+                            setNameFormInstruction("Please enter a name.");
+                            setTimeout(() => {
+                              setNameFormInstruction(
+                                "If you're a returning user, sign in with the same name."
+                              );
+                            }, 2500);
+                          } else if (userName.length > 150) {
+                            setNameFormInstruction(
+                              "Name must not exceed 150 characters."
+                            );
+                            setTimeout(() => {
+                              setNameFormInstruction(
+                                "If you're a returning user, sign in with the same name."
+                              );
+                            }, 2500);
+                          } else {
+                            setAddingAvailability(addingMode.enteringTimes);
+                          }
+                        }}
+                        className="name-field-button continue"
+                      >
+                        Continue
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAddingAvailability(addingMode.view);
+                          setNameFormInstruction(
+                            "If you're a returning user, sign in with the same name."
+                          );
+                        }}
+                        className="name-field-button cancel"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                <div className="buttons-row">
+                  <button
+                    className="control-panel-button"
+                    onClick={() => {
+                      if (addingAvailability === addingMode.view)
+                        setAddingAvailability(addingMode.enteringName);
+                      else setAddingAvailability(addingMode.view);
+                    }}
+                  >
+                    {addingAvailability === addingMode.view
+                      ? "Enter Availability"
+                      : "Done"}
+                  </button>
+                  <button
+                    className="control-panel-button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      setCopyButtonText("Copied!");
+                      setTimeout(() => {
+                        setCopyButtonText("Copy Link");
+                      }, 2500);
+                    }}
+                  >
+                    {copyButtonText}
+                  </button>
+                </div>
+              )}
+              <p>{nameFormInstruction}</p>
+              <div
+                style={{
+                  opacity:
+                    addingAvailability === addingMode.enteringTimes ? "0.2" : "1",
                 }}
-              />
-              <div className="button-group">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (userName.length == 0) {
-                      setNameFormInstruction("Please enter a name.");
-                      setTimeout(() => {
-                        setNameFormInstruction(
-                          "If you're a returning user, sign in with the same name."
-                        );
-                      }, 2500);
-                    } else if (userName.length > 150) {
-                      setNameFormInstruction(
-                        "Name must not exceed 150 characters."
-                      );
-                      setTimeout(() => {
-                        setNameFormInstruction(
-                          "If you're a returning user, sign in with the same name."
-                        );
-                      }, 2500);
-                    } else {
-                      setAddingAvailability(addingMode.enteringTimes);
-                    }
-                  }}
-                  className="name-field-button continue"
-                >
-                  Continue
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAddingAvailability(addingMode.view);
-                    setNameFormInstruction(
-                      "If you're a returning user, sign in with the same name."
-                    );
-                  }}
-                  className="name-field-button cancel"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        ) : (
-          <div className="buttons-row">
-            <button
-              className="control-panel-button"
-              onClick={() => {
-                if (addingAvailability === addingMode.view)
-                  setAddingAvailability(addingMode.enteringName);
-                else setAddingAvailability(addingMode.view);
-              }}
-            >
-              {addingAvailability === addingMode.view
-                ? "Enter Availability"
-                : "Done"}
-            </button>
-            <button
-              className="control-panel-button"
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                setCopyButtonText("Copied!");
-                setTimeout(() => {
-                  setCopyButtonText("Copy Link");
-                }, 2500);
-              }}
-            >
-              {copyButtonText}
-            </button>
-          </div>
-        )}
-        <p>{nameFormInstruction}</p>
-        <div
-          style={{
-            opacity:
-              addingAvailability === addingMode.enteringTimes ? "0.2" : "1",
-          }}
-        >
-          <AvailabilityTable ref={availabilityTable}></AvailabilityTable>
+              >
+                <AvailabilityTable ref={availabilityTable}></AvailabilityTable>
 
-          <p>Display timezones in:</p>
-          <TimezoneSelect
-            value={selectedTimezone}
-            onChange={(tz: any) => {
-              setSelectedTimezone(tz);
-              setTimezone(tz.value);
-            }}
-            classNamePrefix="selector"
-            styles={{
-              control: (base) => ({
-                ...base,
-                width: "315px",
-              }),
-              menu: (base) => ({
-                ...base,
-              }),
-            }}
-          />
-        </div>
+                <p>Display timezones in:</p>
+                <TimezoneSelect
+                  value={selectedTimezone}
+                  onChange={(tz: any) => {
+                    setSelectedTimezone(tz);
+                    setTimezone(tz.value);
+                  }}
+                  classNamePrefix="selector"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      width: "315px",
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                    }),
+                  }}
+                />
+              </div>
+            </div>
+            <TimeSelector
+              viewWindowRange={viewWindowRange}
+              dates={dates}
+              timezone={timezone}
+              addingAvailability={addingAvailability === addingMode.enteringTimes}
+              userName={userName}
+              eventPublicId={eventId ? eventId : ""}
+              availabilityTable={availabilityTable}
+            ></TimeSelector>
+          </div>
       </div>
-      <TimeSelector
-        viewWindowRange={viewWindowRange}
-        dates={dates}
-        timezone={timezone}
-        addingAvailability={addingAvailability === addingMode.enteringTimes}
-        userName={userName}
-        eventPublicId={eventId ? eventId : ""}
-        availabilityTable={availabilityTable}
-      ></TimeSelector>
     </div>
   );
 };

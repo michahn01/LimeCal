@@ -18,7 +18,8 @@ const FeedbackForm = () => {
         
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
         if (feedbackData.message) {
         sendFeedback(feedbackData);
         setFeedbackData({ feedbackType: 'bug', message: '' });

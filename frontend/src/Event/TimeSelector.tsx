@@ -1,6 +1,6 @@
 import './css/TimeSelector.css'
 
-import { FC, useState, useEffect, RefObject } from 'react';
+import { FC, useState, useEffect, RefObject, useRef } from 'react';
 import moment from 'moment-timezone';
 import axiosConfig from '../axios.ts';
 
@@ -84,12 +84,10 @@ const getIntervals = (inclusiveStartTime: string, inclusiveEndTime: string): str
     midNight.setDate(startTime.getDate() + 1);
     midNight.setHours(0, 0, 0, 0);
     for (let current = new Date(startTime); current < midNight; current = new Date(current.getTime() + 15 * 60000)) {
-        // console.log("first loop", current.toTimeString().substring(0, 5));
         intervals.push(current.toTimeString().substring(0, 5));
     }
     midNight.setDate(startTime.getDate());
     for (let current = midNight; current < endTime; current = new Date(current.getTime() + 15 * 60000)) {
-        // console.log(current.toTimeString().substring(0, 5));
         intervals.push(current.toTimeString().substring(0, 5));
     }
     return intervals;
@@ -98,7 +96,6 @@ const getIntervals = (inclusiveStartTime: string, inclusiveEndTime: string): str
 const createDate = (dateString: string, timeString: string, timezone: string): Date => {
     const dateTimeString = `${dateString} ${timeString}`;
     const momentDate = moment.tz(dateTimeString, "YYYY-MM-DD HH-mm", timezone);
-    // console.log(momentDate.toDate());
     return momentDate.toDate();
 }
 function daysAndMinutesBetween(date1: Date, date2: Date) {
@@ -191,7 +188,6 @@ const TimeSelector: FC<TimeSelectorProps> =
 ({ viewWindowRange, dates, timezone, addingAvailability, userName, 
     eventPublicId, availabilityTable }) => {
 
-    // console.log("refreshing time selector")
     // 'times' contains the start times of all 15-minute time slots that must be 
     // displayed in selection panel's viewing window.  
     const [times, setTimes] = useState<string[]>([]);
@@ -229,6 +225,13 @@ const TimeSelector: FC<TimeSelectorProps> =
     // for mobile (touch) compatibility
     const [inTouchMode, setInTouchMode] = useState<boolean>(false);
     const [lastHoveredSlotID, setLastHoveredSlotID] = useState<string>('');
+
+    // for detecting if end of horizontal scroll is reached or not
+    const scrollRef = useRef<HTMLDivElement>(null);
+    // this is for HTML elements to detect if fully scrolled
+    const [isFullyScrolled, setIsFullyScrolled] = useState<boolean>(false);
+    // this is for listeners to detect
+    const isFullyScrolledRef = useRef<boolean>(false);
 
     const loadIntervalStates = (data: Object) => {
         const sortedStates = Object.entries(data).sort((a, b) => {
@@ -280,7 +283,6 @@ const TimeSelector: FC<TimeSelectorProps> =
     }
 
     const fetchIndividualFromApi = () => {
-        // console.log(userName);
         axiosConfig.post('/attendee', {
             "event_public_id": eventPublicId,
             "username": userName,
@@ -461,8 +463,41 @@ const TimeSelector: FC<TimeSelectorProps> =
             setIntervalStates(interval_states);
         }
 
-     }, []);
+        const div = scrollRef.current;
 
+        if (div) {
+            const resizeObserver = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    const { width } = entry.contentRect;
+                    if (width > 0) {
+                        checkScrollPosition();
+                    }
+                }
+            });
+
+            resizeObserver.observe(div);
+
+            const checkScrollPosition = () => {
+                const isAtEnd = div.scrollWidth - 5 - div.scrollLeft <= div.clientWidth;
+                if (isAtEnd || isAtEnd !== isFullyScrolledRef.current) {
+                    setIsFullyScrolled(isAtEnd);
+                    isFullyScrolledRef.current = isAtEnd;
+                }
+            };
+
+            const handleScroll = () => {
+                checkScrollPosition();
+            };
+
+            div.addEventListener('scroll', handleScroll);
+
+            return () => {
+                resizeObserver.unobserve(div);
+                div.removeEventListener('scroll', handleScroll);
+            };
+        }
+
+     }, []);
      useEffect(() => {
         if (intervalStates.length > 0) {
             if (!addingAvailability) {
@@ -522,11 +557,11 @@ const TimeSelector: FC<TimeSelectorProps> =
 
             
 
-            <div className='time-selector-header-label'>
-            {(addingAvailability) ? 
-            `Entering ${userName}'s availability:` :
-            `Showing everyone's availability:`}    
-            </div>
+        <div className='time-selector-header-label'>
+        {(addingAvailability) ? 
+        `Entering ${userName}'s availability:` :
+        `Showing everyone's availability:`}    
+        </div>
 
 
         <div className='time-selector'>
@@ -546,9 +581,10 @@ const TimeSelector: FC<TimeSelectorProps> =
                 {convertTimestamp(convertTimezones(viewWindowRange[1], originalTimezone, timezone))}
             </div>
             </div>
-            <div className='time-selector-drag-selector-container'>
+            <div className={`time-selector-drag-selector-container
+                            ${isFullyScrolled ? ' fully-scrolled' : ' not-fully-scrolled'}`} 
+            ref={scrollRef}>
             {panelDates.map((date, index) => {
-                const isRightMost: boolean = index === (dates.length - 1);
                 let column_label: any;
                 let key: string = "";
                 if (typeof date === "string") {
@@ -571,7 +607,7 @@ const TimeSelector: FC<TimeSelectorProps> =
                 }
                 return (
                     <div className='date-column' key={key}
-                    style={{borderRight: isRightMost ? '1px solid #cfcfcf' : '' }}>
+                    style={{borderLeft: (index === 0) ? ''  : '1px solid #cfcfcf'}}>
                     {column_label}
                     <div className='date-column-timeslot-container' onMouseLeave={() => {
                                     availabilityTable.current?.setAvailableUsers([]);

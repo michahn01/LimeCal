@@ -16,13 +16,11 @@
 .date-column {
     background-color: whitesmoke;
     min-width: 80px;
-    border-left: 1px solid #cfcfcf;
 }
 
 .date-column-header {
     height: 85px;
-    background-color: white;
-    border-top: 1px solid #cfcfcf;
+    background-color: rgb(255, 255, 255);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -61,7 +59,22 @@
     display: flex;
     flex-direction: row;
     overflow-x: scroll;   
+    border-top: 3px solid #cfcfcf;
+    border-bottom: 2px solid #cfcfcf;
+    border-left: 3px solid #cfcfcf;
+    box-sizing: border-box;
 }
+
+.not-fully-scrolled {
+    --mask: conic-gradient(from -135deg at right,#0000,#000 1deg 89deg,#0000 90deg) 50%/100% 30.00px;
+    -webkit-mask: var(--mask);
+            mask: var(--mask);
+}
+.fully-scrolled {
+    border-right: 3px solid #cfcfcf;
+    box-sizing: border-box;
+}
+
 .header {
     height: 77px;
     box-sizing: border-box;

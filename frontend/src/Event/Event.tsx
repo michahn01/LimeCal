@@ -193,7 +193,7 @@ const Event = () => {
                       className="name-input"
                       name="name"
                       onChange={(data) => {
-                        setUserName(data.target.value);
+                        setUserName((data.target.value).trim());
                       }}
                     />
                     <div className="button-group">
@@ -244,8 +244,10 @@ const Event = () => {
                   <button
                     className="control-panel-button"
                     onClick={() => {
-                      if (addingAvailability === addingMode.view)
+                      if (addingAvailability === addingMode.view) {
+                        setUserName("");
                         setAddingAvailability(addingMode.enteringName);
+                      }
                       else setAddingAvailability(addingMode.view);
                     }}
                   >

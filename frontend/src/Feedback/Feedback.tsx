@@ -24,7 +24,7 @@ const FeedbackForm = () => {
         })
         .then(() => {
             setStatusMessage("Successfully sent feedback! We really appreciate it!");
-            console.log('set message')
+            setFeedbackData({ feedbackType: feedbackData.feedbackType, message: '' });
         })
         .catch(() => {
             setStatusMessage("Something went wrong. Please try again.")
@@ -35,8 +35,8 @@ const FeedbackForm = () => {
         event.preventDefault();
         if (feedbackData.message) {
         sendFeedbackToApi(feedbackData);
-        setFeedbackData({ feedbackType: 'bug', message: '' });
-        } else {
+        } 
+        else {
         alert('Please fill out all fields.');
         }
     };
@@ -73,11 +73,11 @@ const Feedback = () => {
             <FeedbackForm></FeedbackForm>
 
             <h2>For Developers</h2>
-            <p>LimeCal is 100% open-source. If you're a developer 
-                and would like to report bugs or any kind of problem in the codebase, I would highly appreciate it
+            <p>LimeCal is 100% open-source. If you're a developer and have identified problems 
+                in the codebase, I would greatly appreciate it
                 if you could create a post under <a href="https://github.com/michahn01/LimeCal/issues">Issues</a> in 
                 LimeCal's GitHub repository so I can fix it right away!</p>
-            <p>If you want to directly suggest changes to the codebase, please feel free to
+            <p>If you want to directly suggest changes to the source code, please feel free to
                 leave a <a href="https://github.com/michahn01/LimeCal/pulls">Pull Request</a>.
             </p>
         </div>

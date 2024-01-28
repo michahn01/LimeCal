@@ -34,7 +34,7 @@ const Help = () => {
         </p>
         <br></br>
         <h2>Responding to an Event</h2>
-        <p>To fill out your available time slots, start by 
+        <p>To fill out your available time slots for an event, start by 
           pressing the "enter availability" button.</p>
         <img src={EnterAvailability} alt="Enter availability" className='help-image'></img>
 
@@ -46,8 +46,8 @@ const Help = () => {
         <p>Then, fill in your available times by clicking and dragging over
           the time-slots grid.
         </p>
-        <img src={FillAvailability} alt="Fill availabiilty" className='help-image-big'></img>
-        <p>When you're done filling in your availabiilty, you can hover over any slot in the time-slots grid
+        <img src={FillAvailability} alt="Fill availabilty" className='help-image-big'></img>
+        <p>When you're done filling in your availabilty, you can hover over any slot in the time-slots grid
           to see who's available at that time slot and who's not.
         </p>
         <img src={SeeOverlaps} alt="See overlaps" className='help-image-big'></img>

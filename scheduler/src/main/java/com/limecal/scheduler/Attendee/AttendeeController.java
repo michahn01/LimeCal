@@ -12,11 +12,6 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-@CrossOrigin(
-    origins = {
-        "*"
-        })
 @RestController
 @RequestMapping(path = "api/v1/attendee")
 public class AttendeeController {

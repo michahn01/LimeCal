@@ -1,7 +1,7 @@
 # LimeCal
-A web application that helps users schedule meetings &amp; appoinments, similar to when2meet. 
+A web application that helps users schedule meetings &amp; appoinments, similar to when2meet.
 
-Check out the website [here](https://limecal.com/events/create)!
+Note: I've taken down the API and website due to server costs (my AWS free tier expired). However, this Git repo shows the application's source code and infrastructure back when it was active. Feel free to look around!
 
 -----
 
@@ -11,4 +11,4 @@ The [frontend](frontend) was built using React in TypeScript. The [backend](sche
 
 ## Hosting
 
-The application is hosted on an AWS EC2 instance. NGINX is used as the app's web server and reverse proxy. Though this application doesn't load balance, AWS Elastic Load Balancer is used to manage TLS termination for HTTPS traffic.
+The application, while it was active, was hosted on an AWS EC2 instance. NGINX was used as the app's web server and reverse proxy. Elastic Load Balancer was used to manage TLS termination for HTTPS traffic.

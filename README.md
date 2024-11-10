@@ -1,7 +1,9 @@
 # LimeCal
 A web application that helps users schedule meetings &amp; appoinments, similar to when2meet.
 
-Note: I've taken down the API and website due to server costs (my AWS free tier expired). However, this Git repo shows the application's source code and infrastructure back when it was active. Feel free to look around!
+Here's a [demo video](https://youtu.be/rvjHqDUtujg) of the website.
+
+Note: I've taken down the API and website due to server costs. However, this Git repo shows the application's source code and infrastructure back when it was active. Feel free to look around!
 
 -----
 
